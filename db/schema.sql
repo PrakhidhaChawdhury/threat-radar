@@ -16,28 +16,46 @@ CREATE TABLE IF NOT EXISTS scraped_items (
     scraped_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. Structured threat intelligence reports produced by Gemini
---    Only rows where Gemini's analysis passed Pydantic validation end up here
-CREATE TABLE IF NOT EXISTS threat_reports (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    item_id         INTEGER NOT NULL UNIQUE,
-    source_intent   TEXT    NOT NULL,   -- ACTIVE_LURE | VICTIM_REPORT | EDUCATIONAL_ADVISORY | UNKNOWN_DISCUSSION
-    risk_level      TEXT    NOT NULL,   -- CRITICAL | HIGH | MEDIUM | LOW | BENIGN
-    threat_category TEXT    NOT NULL,
-    threat_title    TEXT    NOT NULL,
-    the_lure        TEXT,
-    the_hidden_trap TEXT,
-    red_flags       TEXT,               -- JSON string array: ["flag1", "flag2"]
-    action_checklist TEXT,              -- JSON string array: ["step1", "step2", "step3"]
-    relevance_score INTEGER NOT NULL,   -- 1-10 for User Zero
-    confidence_score REAL   NOT NULL,   -- 0.0-1.0
-    unmatched_reason TEXT,              -- populated when confidence < floor
-    notified        INTEGER NOT NULL DEFAULT 0,  -- 1 = Discord alert was sent
-    analyzed_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(item_id) REFERENCES scraped_items(id)
+-- 2. Threat Campaigns — Tracks active clusters, velocity, and recurrence over time
+--    Connects related reports into single actionable campaigns (The Radar's Memory)
+CREATE TABLE IF NOT EXISTS threat_campaigns (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    campaign_fingerprint TEXT NOT NULL UNIQUE,  -- e.g. "CAREER_TELEGRAM_TASK_DEPOSIT" or "DEV_NPM_POSTINSTALL_STEALER"
+    canonical_name      TEXT NOT NULL,
+    threat_category     TEXT NOT NULL,
+    risk_level          TEXT NOT NULL,          -- Highest severity observed
+    report_count        INTEGER NOT NULL DEFAULT 1,
+    velocity            TEXT NOT NULL DEFAULT 'NEW', -- NEW | RISING | ACTIVE | STALE
+    first_seen          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_seen           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Scraper health and self-healing telemetry
+-- 3. Structured threat intelligence reports produced by Gemini
+--    Only rows where Gemini's analysis passed Pydantic validation end up here
+CREATE TABLE IF NOT EXISTS threat_reports (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_id             INTEGER NOT NULL UNIQUE,
+    campaign_id         INTEGER,
+    campaign_fingerprint TEXT,
+    source_intent       TEXT NOT NULL,          -- ACTIVE_LURE | VICTIM_REPORT | EDUCATIONAL_ADVISORY | UNKNOWN_DISCUSSION
+    risk_level          TEXT NOT NULL,          -- CRITICAL | HIGH | MEDIUM | LOW | BENIGN
+    threat_category     TEXT NOT NULL,
+    threat_title        TEXT NOT NULL,
+    the_lure            TEXT,
+    the_hidden_trap     TEXT,
+    red_flags           TEXT,                   -- JSON string array: ["flag1", "flag2"]
+    action_checklist    TEXT,                   -- JSON string array: ["step1", "step2", "step3"]
+    extracted_entities  TEXT,                   -- JSON string array: URLs, package names, handles
+    relevance_score     INTEGER NOT NULL,       -- 1-10 for User Zero
+    confidence_score    REAL NOT NULL,          -- 0.0-1.0
+    unmatched_reason    TEXT,                   -- populated when confidence < floor
+    notified            INTEGER NOT NULL DEFAULT 0,  -- 1 = Discord alert was sent
+    analyzed_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(item_id) REFERENCES scraped_items(id),
+    FOREIGN KEY(campaign_id) REFERENCES threat_campaigns(id)
+);
+
+-- 4. Scraper health and self-healing telemetry
 --    Every scrape attempt is logged here for the dashboard health panel
 CREATE TABLE IF NOT EXISTS scraper_telemetry (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,

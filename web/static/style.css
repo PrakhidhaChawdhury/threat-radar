@@ -199,8 +199,14 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
+}
+
+@media (max-width: 1100px) {
+  .stats-inner {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .stat-card {
@@ -217,6 +223,7 @@ body {
 .stat-card:hover { border-color: var(--border-subtle); }
 
 .stat-card--highlight { border-color: hsl(210, 40%, 22%); }
+.stat-card--campaign  { border-color: hsl(280, 40%, 22%); }
 .stat-card--alert     { border-color: hsl(4, 40%, 20%); }
 .stat-card--heal      { border-color: hsl(260, 30%, 22%); }
 
@@ -230,8 +237,27 @@ body {
 }
 
 .stat-card--highlight .stat-value { color: var(--accent); }
-.stat-card--alert .stat-value     { color: var(--critical); }
-.stat-card--heal  .stat-value     { color: var(--healed); }
+.stat-card--campaign  .stat-value { color: hsl(280, 75%, 68%); }
+.stat-card--alert     .stat-value { color: var(--critical); }
+.stat-card--heal      .stat-value { color: var(--healed); }
+
+/* ── IOC Tags ───────────────────────────────────────────── */
+.ioc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ioc-tag {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-code);
+  font-family: var(--font-mono);
+}
 
 .stat-label {
   font-size: 11px;

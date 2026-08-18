@@ -105,6 +105,13 @@ def _extract_item_fields(raw_item: dict) -> tuple[Optional[str], Optional[str], 
     if raw_item.get("cve_identifier") or raw_item.get("cve"):
         extras.append(f"CVE: {raw_item.get('cve_identifier') or raw_item.get('cve')}")
 
+    # Regex extraction of embedded handles & links (IOCs)
+    if content:
+        import re
+        handles = re.findall(r"@[\w_]{4,32}", content)
+        if handles:
+            extras.append(f"Extracted Handles: {', '.join(set(handles[:3]))}")
+
     if extras:
         extra_text = " | ".join(extras)
         if content:

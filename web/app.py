@@ -19,6 +19,7 @@ from db.database import (
     get_recent_threats,
     get_telemetry_log,
     get_dashboard_stats,
+    get_active_campaigns,
 )
 
 app = FastAPI(title="Threat Radar", docs_url=None, redoc_url=None)
@@ -38,6 +39,7 @@ async def dashboard(request: Request):
     """Main dashboard page — renders the full threat feed + telemetry."""
     threats = await get_recent_threats(limit=20)
     telemetry = await get_telemetry_log(limit=20)
+    campaigns = await get_active_campaigns(limit=10)
     stats = await get_dashboard_stats()
 
     # Parse JSON fields for template rendering
@@ -45,6 +47,7 @@ async def dashboard(request: Request):
     for t in threats:
         t["red_flags"] = json.loads(t.get("red_flags") or "[]")
         t["action_checklist"] = json.loads(t.get("action_checklist") or "[]")
+        t["extracted_entities"] = json.loads(t.get("extracted_entities") or "[]")
 
     return templates.TemplateResponse(
         request=request,
@@ -52,9 +55,17 @@ async def dashboard(request: Request):
         context={
             "threats": threats,
             "telemetry": telemetry,
+            "campaigns": campaigns,
             "stats": stats,
         },
     )
+
+
+@app.get("/api/campaigns")
+async def api_campaigns():
+    """JSON endpoint for active clustered campaigns."""
+    campaigns = await get_active_campaigns(limit=20)
+    return JSONResponse(content=campaigns)
 
 
 @app.get("/api/threats")

@@ -48,6 +48,10 @@
         <span class="stat-value">{{ stats.total_threats }}</span>
         <span class="stat-label">Threats Detected</span>
       </div>
+      <div class="stat-card stat-card--campaign" id="stat-campaigns">
+        <span class="stat-value">{{ stats.active_campaigns }}</span>
+        <span class="stat-label">Threat Campaigns</span>
+      </div>
       <div class="stat-card stat-card--alert" id="stat-alerts">
         <span class="stat-value">{{ stats.alerts_sent }}</span>
         <span class="stat-label">Alerts Sent</span>
@@ -164,8 +168,19 @@
               </div>
               {% endif %}
 
+              {% if threat.extracted_entities %}
+              <div class="detail-block">
+                <span class="detail-label">🏷️ Extracted Indicators (IOCs)</span>
+                <div class="ioc-tags">
+                  {% for entity in threat.extracted_entities %}
+                  <span class="ioc-tag"><code>{{ entity }}</code></span>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
               <div class="card-footer">
-                <span class="confidence-text">Confidence: {{ "%.0f"|format(threat.confidence_score * 100) }}%</span>
+                <span class="confidence-text">Campaign: <strong>{{ threat.campaign_fingerprint or 'N/A' }}</strong> • Confidence: {{ "%.0f"|format(threat.confidence_score * 100) }}%</span>
                 <span class="timestamp">{{ threat.analyzed_at[:16] if threat.analyzed_at else '' }}</span>
               </div>
             </div>

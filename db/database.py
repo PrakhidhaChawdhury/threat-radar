@@ -85,23 +85,65 @@ async def update_scraped_item_status(item_id: int, status: str) -> None:
         await db.commit()
 
 
-async def save_threat_report(item_id: int, payload: dict) -> int:
+async def save_threat_report(item_id: int, payload: dict) -> tuple[int, int, str]:
     """
-    Persist a structured Gemini analysis to threat_reports.
-    `payload` must be a dict matching the ThreatIntelligencePayload schema.
-    Returns the new row ID.
+    Persist a structured Gemini analysis to threat_reports and cluster into threat_campaigns.
+    Returns tuple: (report_id, campaign_id, campaign_velocity).
     """
+    fingerprint = payload.get("campaign_fingerprint", "UNKNOWN_CAMPAIGN").strip().upper()
+    category = payload["threat_category"]
+    risk = payload["risk_level"]
+    canonical_name = payload["threat_title"]
+
     async with aiosqlite.connect(DATABASE_PATH) as db:
+        db.row_factory = aiosqlite.Row
+
+        # ── Step A: Upsert Campaign Cluster ───────────────────
+        cur = await db.execute(
+            "SELECT id, report_count FROM threat_campaigns WHERE campaign_fingerprint = ?",
+            (fingerprint,)
+        )
+        existing_campaign = await cur.fetchone()
+
+        if existing_campaign:
+            camp_id = existing_campaign["id"]
+            new_count = existing_campaign["report_count"] + 1
+            velocity = "RISING" if new_count >= 3 else "ACTIVE"
+
+            await db.execute(
+                """
+                UPDATE threat_campaigns
+                SET report_count = ?, velocity = ?, last_seen = CURRENT_TIMESTAMP,
+                    risk_level = CASE WHEN ? = 'CRITICAL' THEN 'CRITICAL' ELSE risk_level END
+                WHERE id = ?
+                """,
+                (new_count, velocity, risk, camp_id)
+            )
+        else:
+            velocity = "NEW"
+            cur_ins = await db.execute(
+                """
+                INSERT INTO threat_campaigns (campaign_fingerprint, canonical_name, threat_category, risk_level, report_count, velocity)
+                VALUES (?, ?, ?, ?, 1, 'NEW')
+                """,
+                (fingerprint, canonical_name, category, risk)
+            )
+            camp_id = cur_ins.lastrowid
+
+        # ── Step B: Insert Structured Threat Report ───────────
         cursor = await db.execute(
             """
             INSERT INTO threat_reports (
-                item_id, source_intent, risk_level, threat_category, threat_title,
-                the_lure, the_hidden_trap, red_flags, action_checklist,
+                item_id, campaign_id, campaign_fingerprint, source_intent, risk_level,
+                threat_category, threat_title, the_lure, the_hidden_trap,
+                red_flags, action_checklist, extracted_entities,
                 relevance_score, confidence_score, unmatched_reason
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 item_id,
+                camp_id,
+                fingerprint,
                 payload["source_intent"],
                 payload["risk_level"],
                 payload["threat_category"],
@@ -110,13 +152,15 @@ async def save_threat_report(item_id: int, payload: dict) -> int:
                 payload.get("the_hidden_trap"),
                 json.dumps(payload.get("red_flags", [])),
                 json.dumps(payload.get("action_checklist", [])),
+                json.dumps(payload.get("extracted_entities", [])),
                 payload["relevance_score"],
                 payload["confidence_score"],
                 payload.get("unmatched_reason"),
             ),
         )
         await db.commit()
-        return cursor.lastrowid
+        report_id = cursor.lastrowid
+        return report_id, camp_id, velocity
 
 
 async def mark_notified(threat_report_id: int) -> None:
@@ -211,16 +255,42 @@ async def get_telemetry_log(limit: int = 50) -> list[dict]:
         return [dict(row) for row in rows]
 
 
+async def get_active_campaigns(limit: int = 10) -> list[dict]:
+    """Fetch active and rising threat campaigns ordered by velocity and report count."""
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        cursor = await db.execute(
+            """
+            SELECT * FROM threat_campaigns
+            ORDER BY
+                CASE velocity
+                    WHEN 'RISING' THEN 1
+                    WHEN 'ACTIVE' THEN 2
+                    WHEN 'NEW' THEN 3
+                    ELSE 4
+                END,
+                report_count DESC,
+                last_seen DESC
+            LIMIT ?
+            """,
+            (limit,),
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+
 async def get_dashboard_stats() -> dict:
     """Quick summary stats for the dashboard header."""
     async with aiosqlite.connect(DATABASE_PATH) as db:
         total_scraped = (await (await db.execute("SELECT COUNT(*) FROM scraped_items")).fetchone())[0]
         total_threats = (await (await db.execute("SELECT COUNT(*) FROM threat_reports")).fetchone())[0]
+        active_campaigns = (await (await db.execute("SELECT COUNT(*) FROM threat_campaigns")).fetchone())[0]
         alerts_sent = (await (await db.execute("SELECT COUNT(*) FROM threat_reports WHERE notified = 1")).fetchone())[0]
         heals = (await (await db.execute("SELECT COUNT(*) FROM scraper_telemetry WHERE heal_triggered = 1")).fetchone())[0]
         return {
             "total_scraped": total_scraped,
             "total_threats": total_threats,
+            "active_campaigns": active_campaigns,
             "alerts_sent": alerts_sent,
             "self_heals": heals,
         }

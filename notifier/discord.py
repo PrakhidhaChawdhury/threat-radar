@@ -86,6 +86,11 @@ def _build_embed(payload: ThreatIntelligencePayload, source_url: str) -> dict:
             "inline": True,
         },
         {
+            "name": "🧬 Campaign Vector",
+            "value": f"`{payload.campaign_fingerprint}`",
+            "inline": True,
+        },
+        {
             "name": "🔍 Source Intent",
             "value": f"`{payload.source_intent}`",
             "inline": True,
@@ -96,6 +101,14 @@ def _build_embed(payload: ThreatIntelligencePayload, source_url: str) -> dict:
             "inline": False,
         },
     ]
+
+    if payload.extracted_entities:
+        entities_text = ", ".join(f"`{e}`" for e in payload.extracted_entities[:5])
+        fields.insert(4, {
+            "name": "🏷️ Extracted Indicators (IOCs)",
+            "value": entities_text,
+            "inline": False,
+        })
 
     return {
         "title": f"{risk_emoji} {payload.threat_title}",

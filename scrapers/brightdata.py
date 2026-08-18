@@ -182,6 +182,33 @@ async def scrape_url(collector_id: str, url: str) -> Optional[list[dict]]:
                     print(f"[RUNNER] ✓ Fallback fetched {len(parsed_items)} live Reddit scam posts")
                     return parsed_items
 
+            # If HackerNews Developer Threats (hnrss.org / ycombinator.com)
+            if "hnrss.org" in url or "ycombinator.com" in url:
+                import xml.etree.ElementTree as ET
+                import re
+
+                resp = await client.get(url, headers=custom_headers)
+                if resp.status_code == 200:
+                    try:
+                        root = ET.fromstring(resp.text)
+                        parsed_items = []
+                        for item in root.findall(".//item"):
+                            title = item.findtext("title")
+                            link = item.findtext("link") or item.findtext("comments")
+                            raw_desc = item.findtext("description") or title or ""
+                            clean_desc = re.sub(r"<[^>]+>", " ", raw_desc).strip()
+                            if title and link:
+                                parsed_items.append({
+                                    "url": link,
+                                    "title": title,
+                                    "content": clean_desc if len(clean_desc) > 20 else title,
+                                })
+                        if parsed_items:
+                            print(f"[RUNNER] ✓ Fallback parsed {len(parsed_items)} live HackerNews threat stories")
+                            return parsed_items
+                    except Exception as parse_err:
+                        print(f"[RUNNER] HN RSS parse error: {parse_err}")
+
     except Exception as e:
         print(f"[RUNNER] Fallback fetch error: {e}")
 

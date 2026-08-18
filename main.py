@@ -103,10 +103,11 @@ async def run_pipeline() -> dict:
             summary["parse_failures"] += 1
             continue
 
-        # Step 3: Save to threat_reports
-        report_id = await save_threat_report(item_id, payload.model_dump())
+        # Step 3: Save to threat_reports and cluster into campaign
+        report_id, camp_id, velocity = await save_threat_report(item_id, payload.model_dump())
         await update_scraped_item_status(item_id, "ANALYZED")
         summary["threats_analyzed"] += 1
+        print(f"[PIPELINE]   ↳ Clustered into Campaign #{camp_id} [{payload.campaign_fingerprint}] (Velocity: {velocity})")
 
         # Step 4: Conditional alert delivery
         if should_alert(payload):

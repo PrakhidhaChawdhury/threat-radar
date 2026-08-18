@@ -90,6 +90,19 @@ class ThreatIntelligencePayload(BaseModel):
         )
     )
 
+    campaign_fingerprint: str = Field(
+        description=(
+            "A standardized uppercase identifier grouping identical or variant attack campaigns. "
+            "Examples: 'DEV_NPM_POSTINSTALL_STEALER', 'CAREER_TELEGRAM_TASK_DEPOSIT', "
+            "'FIN_UPI_QR_REVERSE_PHISH', 'COURIER_REDELIVERY_SMS_LURE', 'DEV_VSCODE_EXTENSION_STEALER'."
+        )
+    )
+
+    extracted_entities: List[str] = Field(
+        default=[],
+        description="Any specific malicious package names, telegram handles, domain names, or wallet IDs mentioned in the report."
+    )
+
     unmatched_reason: Optional[str] = Field(
         default=None,
         description="If confidence_score < 0.65, briefly explain why this content does NOT clearly represent an active threat."

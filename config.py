@@ -19,8 +19,8 @@ DISCORD_WEBHOOK_URL: str = os.environ.get("DISCORD_WEBHOOK_URL", "")
 # Bright Data Collector IDs
 # Each source gets its own Collector ID from Scraper Studio
 # ──────────────────────────────────────────────────────────────
-REDDIT_SCAMS_COLLECTOR_ID: str = os.environ.get("REDDIT_SCAMS_COLLECTOR_ID", "")
 GITHUB_ADVISORIES_COLLECTOR_ID: str = os.environ.get("GITHUB_ADVISORIES_COLLECTOR_ID", "")
+HACKERNEWS_SECURITY_COLLECTOR_ID: str = os.environ.get("HACKERNEWS_SECURITY_COLLECTOR_ID", "")
 
 # Bright Data REST API base URL
 BRIGHTDATA_API_BASE = "https://api.brightdata.com"
@@ -46,22 +46,20 @@ LLM_MAX_RETRIES: int = 1               # Single retry on Pydantic validation fai
 DATABASE_PATH: str = "threat_radar.db"
 
 # ──────────────────────────────────────────────────────────────
-# Scraper Sources
-# Defines discovery URL, its Collector ID, and source label.
-# Extend this list to add new sources without touching runner.py
+# Scraper Sources (Hyper-targeted to User Zero)
 # ──────────────────────────────────────────────────────────────
 SCRAPER_SOURCES: list[dict] = [
-    {
-        "name": "reddit_scams",
-        "label": "Reddit r/Scams",
-        "discovery_url": "https://www.reddit.com/r/Scams/new",
-        "collector_id": REDDIT_SCAMS_COLLECTOR_ID,
-    },
     {
         "name": "github_advisories",
         "label": "GitHub Security Advisories",
         "discovery_url": "https://github.com/advisories",
         "collector_id": GITHUB_ADVISORIES_COLLECTOR_ID,
+    },
+    {
+        "name": "hackernews_security",
+        "label": "HackerNews Developer & Gig Threats",
+        "discovery_url": "https://hnrss.org/newest?q=scam+OR+malicious+OR+phishing+OR+vulnerability",
+        "collector_id": HACKERNEWS_SECURITY_COLLECTOR_ID,
     },
 ]
 
