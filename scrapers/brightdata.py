@@ -42,7 +42,8 @@ async def trigger_collector(collector_id: str, url: str) -> Optional[str]:
         return None
 
     endpoint = f"{config.BRIGHTDATA_API_BASE}/dca/trigger?collector={collector_id}&queue_next=1"
-    payload = [{"url": url}]
+    # Hard-enforce single page and max 20 items to prevent cloud crawler runaway
+    payload = [{"url": url, "max_pages": 1, "limit": 20}]
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:

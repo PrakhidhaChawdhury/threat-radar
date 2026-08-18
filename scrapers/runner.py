@@ -256,10 +256,15 @@ async def run_source(source: dict) -> list[int]:
         )
         return []
 
-    # ── Step 3: Detail Scrape for New URLs ───────────────────
+    # ── Step 3: Detail Scrape for New URLs (Capped at 10 items max per cycle) ──
+    MAX_ITEMS_PER_CYCLE = 10
+    items_to_process = new_items[:MAX_ITEMS_PER_CYCLE]
+    if len(new_items) > MAX_ITEMS_PER_CYCLE:
+        print(f"[RUNNER] ⚠️ Capping processing to {MAX_ITEMS_PER_CYCLE} items this cycle to conserve rate limits.")
+
     saved_item_ids: list[int] = []
 
-    for raw_item in new_items:
+    for raw_item in items_to_process:
         url, title, content = _extract_item_fields(raw_item)
         if not url:
             continue
