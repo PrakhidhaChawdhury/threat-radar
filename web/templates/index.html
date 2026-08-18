@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Threat Radar — Personalized cybersecurity threat intelligence. Real-time scam and attack vector monitoring for developers and students." />
+  <title>Threat Radar — Cybersecurity Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">🛡️</span>
+        <div class="brand-text">
+          <span class="brand-name">Threat Radar</span>
+          <span class="brand-sub">Personalized Cybersecurity Intelligence</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="status-pill" id="pipeline-status">
+          <span class="status-dot"></span>
+          <span class="status-label">Pipeline Active</span>
+        </div>
+        <button class="heal-demo-btn" id="simulate-heal-btn" onclick="simulateSelfHeal()" aria-label="Simulate Scraper Breakdown & Heal">
+          🔧 Demo Auto-Heal
+        </button>
+        <button class="refresh-btn" id="refresh-btn" onclick="window.location.reload()" aria-label="Refresh dashboard">
+          ↻ Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Stats Bar ───────────────────────────────────── -->
+  <section class="stats-bar" aria-label="Summary statistics">
+    <div class="stats-inner">
+      <div class="stat-card" id="stat-scraped">
+        <span class="stat-value">{{ stats.total_scraped }}</span>
+        <span class="stat-label">Items Indexed</span>
+      </div>
+      <div class="stat-card stat-card--highlight" id="stat-threats">
+        <span class="stat-value">{{ stats.total_threats }}</span>
+        <span class="stat-label">Threats Detected</span>
+      </div>
+      <div class="stat-card stat-card--alert" id="stat-alerts">
+        <span class="stat-value">{{ stats.alerts_sent }}</span>
+        <span class="stat-label">Alerts Sent</span>
+      </div>
+      <div class="stat-card stat-card--heal" id="stat-heals">
+        <span class="stat-value">{{ stats.self_heals }}</span>
+        <span class="stat-label">Self-Heals</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Main Content ────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- Left: Threat Feed -->
+    <section class="feed-section" aria-labelledby="feed-heading">
+      <div class="section-header">
+        <h1 id="feed-heading" class="section-title">
+          <span class="section-icon">⚡</span> Threat Intelligence Feed
+        </h1>
+        <!-- Filter Controls -->
+        <div class="filter-row" role="group" aria-label="Filter threats">
+          <button class="filter-btn active" data-filter="all" id="filter-all">All</button>
+          <button class="filter-btn filter-btn--critical" data-filter="CRITICAL" id="filter-critical">🔴 Critical</button>
+          <button class="filter-btn filter-btn--high" data-filter="HIGH" id="filter-high">🟠 High</button>
+          <button class="filter-btn filter-btn--medium" data-filter="MEDIUM" id="filter-medium">🟡 Medium</button>
+          <button class="filter-btn filter-btn--low" data-filter="LOW" id="filter-low">🟢 Low</button>
+        </div>
+      </div>
+
+      <!-- Threat Cards -->
+      <div class="threat-feed" id="threat-feed">
+        {% if threats %}
+          {% for threat in threats %}
+          <article
+            class="threat-card threat-card--{{ threat.risk_level | lower }}"
+            data-risk="{{ threat.risk_level }}"
+            id="threat-{{ threat.id }}"
+            aria-label="Threat: {{ threat.threat_title }}"
+          >
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="card-meta">
+                <span class="risk-badge risk-badge--{{ threat.risk_level | lower }}">
+                  {% if threat.risk_level == 'CRITICAL' %}🔴{% elif threat.risk_level == 'HIGH' %}🟠{% elif threat.risk_level == 'MEDIUM' %}🟡{% else %}🟢{% endif %}
+                  {{ threat.risk_level }}
+                </span>
+                <span class="category-tag">{{ threat.threat_category }}</span>
+              </div>
+              <div class="card-score">
+                <span class="relevance-score" title="Relevance to your profile">
+                  {{ threat.relevance_score }}<span class="score-denom">/10</span>
+                </span>
+                <span class="score-label">relevance</span>
+              </div>
+            </div>
+
+            <!-- Card Title -->
+            <h2 class="card-title">{{ threat.threat_title }}</h2>
+
+            <!-- Intent + Source -->
+            <div class="card-source">
+              <span class="intent-badge">{{ threat.source_intent | replace('_', ' ') }}</span>
+              <a class="source-link" href="{{ threat.source_url }}" target="_blank" rel="noopener noreferrer">
+                ↗ View Source
+              </a>
+            </div>
+
+            <!-- Expandable details (collapsed by default) -->
+            <button
+              class="expand-btn"
+              id="expand-btn-{{ threat.id }}"
+              aria-expanded="false"
+              aria-controls="details-{{ threat.id }}"
+              onclick="toggleDetails({{ threat.id }})"
+            >
+              Show Details <span class="expand-chevron">▼</span>
+            </button>
+
+            <div class="card-details" id="details-{{ threat.id }}" hidden>
+              {% if threat.the_lure %}
+              <div class="detail-block">
+                <span class="detail-label">🎯 The Lure</span>
+                <p class="detail-text">{{ threat.the_lure }}</p>
+              </div>
+              {% endif %}
+
+              {% if threat.the_hidden_trap %}
+              <div class="detail-block">
+                <span class="detail-label">⚠️ The Hidden Trap</span>
+                <p class="detail-text">{{ threat.the_hidden_trap }}</p>
+              </div>
+              {% endif %}
+
+              {% if threat.red_flags %}
+              <div class="detail-block">
+                <span class="detail-label">🚩 Red Flags</span>
+                <ul class="detail-list">
+                  {% for flag in threat.red_flags %}
+                  <li>{{ flag }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+
+              {% if threat.action_checklist %}
+              <div class="detail-block detail-block--action">
+                <span class="detail-label">✅ What To Do</span>
+                <ol class="detail-list action-list">
+                  {% for step in threat.action_checklist %}
+                  <li>{{ step }}</li>
+                  {% endfor %}
+                </ol>
+              </div>
+              {% endif %}
+
+              <div class="card-footer">
+                <span class="confidence-text">Confidence: {{ "%.0f"|format(threat.confidence_score * 100) }}%</span>
+                <span class="timestamp">{{ threat.analyzed_at[:16] if threat.analyzed_at else '' }}</span>
+              </div>
+            </div>
+          </article>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state" id="empty-state">
+            <span class="empty-icon">🔍</span>
+            <p class="empty-title">No threats indexed yet</p>
+            <p class="empty-sub">Run <code>uv run python main.py once</code> to start the pipeline.</p>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Right: Scraper Health Telemetry -->
+    <aside class="telemetry-section" aria-labelledby="telemetry-heading">
+      <div class="section-header">
+        <h2 id="telemetry-heading" class="section-title">
+          <span class="section-icon">⚙️</span> Scraper Health
+        </h2>
+      </div>
+
+      <div class="telemetry-feed" id="telemetry-feed">
+        {% if telemetry %}
+          {% for entry in telemetry %}
+          <div
+            class="telemetry-card telemetry-card--{{ entry.status | lower }}"
+            id="telemetry-{{ entry.id }}"
+          >
+            <div class="telemetry-header">
+              <span class="telemetry-source">{{ entry.source_name | replace('_', ' ') | title }}</span>
+              <span class="telemetry-status telemetry-status--{{ entry.status | lower }}">
+                {% if entry.status == 'HEALTHY' %}✅
+                {% elif entry.status == 'HEALED' %}⚡
+                {% elif entry.status == 'DEGRADED' %}⚠️
+                {% elif entry.status == 'HEALING' %}🔧
+                {% else %}❌{% endif %}
+                {{ entry.status }}
+              </span>
+            </div>
+            <div class="telemetry-stats">
+              <span>Found: <strong>{{ entry.items_found }}</strong></span>
+              <span>New: <strong>{{ entry.items_new }}</strong></span>
+              {% if entry.heal_triggered %}
+              <span class="heal-flag">🔧 Healed</span>
+              {% endif %}
+            </div>
+            {% if entry.error_message %}
+            <p class="telemetry-error">{{ entry.error_message }}</p>
+            {% endif %}
+            <span class="telemetry-time">{{ entry.created_at[:16] if entry.created_at else '' }}</span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <span class="empty-icon">📡</span>
+            <p class="empty-title">No scrape cycles run yet</p>
+          </div>
+        {% endif %}
+      </div>
+    </aside>
+
+  </main>
+
+  <script>
+    // ── Filter Logic ──────────────────────────────────────────
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const threatCards = document.querySelectorAll('.threat-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const filter = btn.dataset.filter;
+        threatCards.forEach(card => {
+          if (filter === 'all' || card.dataset.risk === filter) {
+            card.style.display = '';
+            card.style.animation = 'fadeIn 0.2s ease';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // ── Expand/Collapse Threat Details ────────────────────────
+    function toggleDetails(id) {
+      const details = document.getElementById('details-' + id);
+      const btn = document.getElementById('expand-btn-' + id);
+      const chevron = btn.querySelector('.expand-chevron');
+      const isHidden = details.hidden;
+
+      details.hidden = !isHidden;
+      btn.setAttribute('aria-expanded', String(isHidden));
+      btn.innerHTML = (isHidden ? 'Hide Details' : 'Show Details') + ' <span class="expand-chevron">' + (isHidden ? '▲' : '▼') + '</span>';
+    }
+
+    // ── Simulate Self-Healing Lifecycle ───────────────────────
+    async function simulateSelfHeal() {
+      const btn = document.getElementById('simulate-heal-btn');
+      const origText = btn.innerHTML;
+      btn.innerHTML = '⚡ Healing...';
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/simulate-heal', { method: 'POST' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          btn.innerHTML = '✅ Healed!';
+          setTimeout(() => {
+            window.location.reload();
+          }, 600);
+        } else {
+          btn.innerHTML = origText;
+          btn.disabled = false;
+        }
+      } catch (e) {
+        console.error(e);
+        btn.innerHTML = origText;
+        btn.disabled = false;
+      }
+    }
+  </script>
+
+</body>
+</html>

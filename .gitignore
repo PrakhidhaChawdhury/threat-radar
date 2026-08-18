@@ -1,0 +1,8 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+threat_radar.db
+threat_radar.db-wal
+threat_radar.db-shm
+.pytest_cache/
