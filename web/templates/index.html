@@ -188,6 +188,9 @@
                   <span class="ioc-tag"><code>{{ entity }}</code></span>
                   {% endfor %}
                 </div>
+              </div>
+              {% endif %}
+
               {% if threat.audit_corrections %}
               <div class="detail-block detail-block--audit">
                 <span class="detail-label">🛡️ Critic Audit Trail (Self-Correction Log)</span>
