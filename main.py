@@ -29,6 +29,7 @@ from db.database import (
 from scrapers.runner import run_source
 from engine.heuristics import run_heuristic_gate
 from engine.evaluator import evaluate_threat
+from engine.critic import audit as critic_audit
 from engine.schemas import ThreatIntelligencePayload
 from notifier.discord import send_threat_alert, should_alert
 
@@ -47,12 +48,12 @@ async def run_pipeline() -> dict:
         "items_scraped": 0,
         "items_skipped_benign": 0,
         "threats_analyzed": 0,
+        "threats_self_corrected": 0,
         "alerts_sent": 0,
         "parse_failures": 0,
     }
 
     # ── Phase 1: Scraping ─────────────────────────────────────
-    # Gather all new item IDs from all sources concurrently
     all_new_item_ids: list[int] = []
 
     for source in config.SCRAPER_SOURCES:
@@ -71,7 +72,7 @@ async def run_pipeline() -> dict:
     # ── Phase 2: Fetch raw content for analysis ───────────────
     rows = await get_scraped_items_by_ids(all_new_item_ids)
 
-    # ── Phase 3: Heuristic Gate → LLM → Save → Alert ─────────
+    # ── Phase 3: Heuristic Gate → LLM → Critic → Save → Alert ──
     for row in rows:
         item_id = row["id"]
         source_url = row["source_url"]
@@ -103,32 +104,63 @@ async def run_pipeline() -> dict:
             summary["parse_failures"] += 1
             continue
 
-        # Step 3: Save to threat_reports and cluster into campaign
-        report_id, camp_id, velocity = await save_threat_report(item_id, payload.model_dump())
+        # Step 3: Self-Critic Audit (The Agent Watching Itself)
+        # Grounding check, over-reaction correction, quality assertion — zero LLM calls.
+        critic_result = critic_audit(payload, raw_title, raw_content)
+        verified_payload = critic_result.final_payload
+        if critic_result.audit_status == "SELF_CORRECTED":
+            summary["threats_self_corrected"] += 1
+
+        # Step 4: Save to threat_reports (with audit trail) and cluster into campaign
+        report_id, camp_id, velocity = await save_threat_report(
+            item_id,
+            verified_payload.model_dump(),
+            audit_status=critic_result.audit_status,
+            audit_corrections=critic_result.corrections,
+        )
         await update_scraped_item_status(item_id, "ANALYZED")
         summary["threats_analyzed"] += 1
-        print(f"[PIPELINE]   ↳ Clustered into Campaign #{camp_id} [{payload.campaign_fingerprint}] (Velocity: {velocity})")
+        print(
+            f"[PIPELINE]   ↳ Clustered into Campaign #{camp_id} "
+            f"[{verified_payload.campaign_fingerprint}] (Velocity: {velocity})"
+        )
 
-        # Step 4: Conditional alert delivery
-        if should_alert(payload):
-            sent = await send_threat_alert(payload, source_url)
+        # Step 5: Velocity-Adaptive Alert Delivery
+        # RISING campaigns are already proven active → lower the alert threshold
+        # to catch outbreaks early. NEW / ACTIVE use the default config threshold.
+        effective_threshold = (
+            max(config.RELEVANCE_THRESHOLD - 2, 5)   # e.g. 8-2=6, floor at 5
+            if velocity == "RISING"
+            else config.RELEVANCE_THRESHOLD
+        )
+        alert_qualified = (
+            verified_payload.relevance_score >= effective_threshold
+            and verified_payload.risk_level in config.RISK_LEVELS_TO_ALERT
+        )
+
+        if alert_qualified:
+            threshold_note = f"(adaptive threshold: {effective_threshold})" if velocity == "RISING" else ""
+            print(f"[PIPELINE]   ↳ 🚨 Alert threshold met {threshold_note} — notifying Discord.")
+            sent = await send_threat_alert(verified_payload, source_url)
             if sent:
                 await mark_notified(report_id)
                 summary["alerts_sent"] += 1
         else:
             print(
                 f"[PIPELINE]   ↳ Stored silently "
-                f"(Relevance={payload.relevance_score}/10, Risk={payload.risk_level})"
+                f"(Relevance={verified_payload.relevance_score}/10, "
+                f"Risk={verified_payload.risk_level}, Threshold={effective_threshold})"
             )
 
     # ── Summary ───────────────────────────────────────────────
     print("\n" + "─" * 60)
     print(f"  ✅ Cycle complete:")
-    print(f"     • Items scraped:       {summary['items_scraped']}")
-    print(f"     • Skipped (benign):    {summary['items_skipped_benign']}")
-    print(f"     • Threats analyzed:    {summary['threats_analyzed']}")
-    print(f"     • Alerts sent:         {summary['alerts_sent']}")
-    print(f"     • Parse failures:      {summary['parse_failures']}")
+    print(f"     • Items scraped:           {summary['items_scraped']}")
+    print(f"     • Skipped (benign):        {summary['items_skipped_benign']}")
+    print(f"     • Threats analyzed:        {summary['threats_analyzed']}")
+    print(f"     • Self-corrected by Critic:{summary['threats_self_corrected']}")
+    print(f"     • Alerts sent:             {summary['alerts_sent']}")
+    print(f"     • Parse failures:          {summary['parse_failures']}")
     print("─" * 60)
 
     return summary

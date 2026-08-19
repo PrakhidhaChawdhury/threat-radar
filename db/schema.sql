@@ -49,6 +49,8 @@ CREATE TABLE IF NOT EXISTS threat_reports (
     relevance_score     INTEGER NOT NULL,       -- 1-10 for User Zero
     confidence_score    REAL NOT NULL,          -- 0.0-1.0
     unmatched_reason    TEXT,                   -- populated when confidence < floor
+    audit_status        TEXT NOT NULL DEFAULT 'VERIFIED',   -- VERIFIED | SELF_CORRECTED
+    audit_corrections   TEXT,                   -- JSON string array of correction descriptions
     notified            INTEGER NOT NULL DEFAULT 0,  -- 1 = Discord alert was sent
     analyzed_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(item_id) REFERENCES scraped_items(id),

@@ -85,7 +85,12 @@ async def update_scraped_item_status(item_id: int, status: str) -> None:
         await db.commit()
 
 
-async def save_threat_report(item_id: int, payload: dict) -> tuple[int, int, str]:
+async def save_threat_report(
+    item_id: int,
+    payload: dict,
+    audit_status: str = "VERIFIED",
+    audit_corrections: list | None = None,
+) -> tuple[int, int, str]:
     """
     Persist a structured Gemini analysis to threat_reports and cluster into threat_campaigns.
     Returns tuple: (report_id, campaign_id, campaign_velocity).
@@ -130,15 +135,16 @@ async def save_threat_report(item_id: int, payload: dict) -> tuple[int, int, str
             )
             camp_id = cur_ins.lastrowid
 
-        # ── Step B: Insert Structured Threat Report ───────────
+        # ── Step B: Insert Structured Threat Report (with audit trail) ──
         cursor = await db.execute(
             """
             INSERT INTO threat_reports (
                 item_id, campaign_id, campaign_fingerprint, source_intent, risk_level,
                 threat_category, threat_title, the_lure, the_hidden_trap,
                 red_flags, action_checklist, extracted_entities,
-                relevance_score, confidence_score, unmatched_reason
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                relevance_score, confidence_score, unmatched_reason,
+                audit_status, audit_corrections
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 item_id,
@@ -156,6 +162,8 @@ async def save_threat_report(item_id: int, payload: dict) -> tuple[int, int, str
                 payload["relevance_score"],
                 payload["confidence_score"],
                 payload.get("unmatched_reason"),
+                audit_status,
+                json.dumps(audit_corrections or []),
             ),
         )
         await db.commit()
