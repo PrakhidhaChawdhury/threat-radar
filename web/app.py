@@ -48,6 +48,7 @@ async def dashboard(request: Request):
         t["red_flags"] = json.loads(t.get("red_flags") or "[]")
         t["action_checklist"] = json.loads(t.get("action_checklist") or "[]")
         t["extracted_entities"] = json.loads(t.get("extracted_entities") or "[]")
+        t["audit_corrections"] = json.loads(t.get("audit_corrections") or "[]")
 
     return templates.TemplateResponse(
         request=request,

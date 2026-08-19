@@ -100,6 +100,15 @@
                   {{ threat.risk_level }}
                 </span>
                 <span class="category-tag">{{ threat.threat_category }}</span>
+                {% if threat.audit_status == 'SELF_CORRECTED' %}
+                <span class="audit-badge audit-badge--corrected" title="Self-Critic caught and removed hallucinations/over-reactions">
+                  ⚡ Self-Corrected
+                </span>
+                {% else %}
+                <span class="audit-badge audit-badge--verified" title="Passed Grounding & Verification Audit">
+                  ✓ Verified
+                </span>
+                {% endif %}
               </div>
               <div class="card-score">
                 <span class="relevance-score" title="Relevance to your profile">
@@ -115,6 +124,9 @@
             <!-- Intent + Source -->
             <div class="card-source">
               <span class="intent-badge">{{ threat.source_intent | replace('_', ' ') }}</span>
+              {% if threat.campaign_fingerprint %}
+              <span class="campaign-tag">🧬 {{ threat.campaign_fingerprint }}</span>
+              {% endif %}
               <a class="source-link" href="{{ threat.source_url }}" target="_blank" rel="noopener noreferrer">
                 ↗ View Source
               </a>
@@ -176,6 +188,14 @@
                   <span class="ioc-tag"><code>{{ entity }}</code></span>
                   {% endfor %}
                 </div>
+              {% if threat.audit_corrections %}
+              <div class="detail-block detail-block--audit">
+                <span class="detail-label">🛡️ Critic Audit Trail (Self-Correction Log)</span>
+                <ul class="detail-list audit-list">
+                  {% for corr in threat.audit_corrections %}
+                  <li><code>{{ corr }}</code></li>
+                  {% endfor %}
+                </ul>
               </div>
               {% endif %}
 
