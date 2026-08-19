@@ -4,9 +4,16 @@ All pipeline components import from here. No magic numbers anywhere else.
 """
 
 import os
+import sys
 from dotenv import load_dotenv
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 load_dotenv()
+
 
 # ──────────────────────────────────────────────────────────────
 # API Keys
@@ -58,7 +65,7 @@ SCRAPER_SOURCES: list[dict] = [
     {
         "name": "hackernews_security",
         "label": "HackerNews Developer & Gig Threats",
-        "discovery_url": "https://hnrss.org/newest?q=scam+OR+malicious+OR+phishing+OR+vulnerability",
+        "discovery_url": "https://news.ycombinator.com",
         "collector_id": HACKERNEWS_SECURITY_COLLECTOR_ID,
     },
 ]
