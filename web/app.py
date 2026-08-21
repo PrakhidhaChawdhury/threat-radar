@@ -122,3 +122,21 @@ async def api_simulate_heal():
     )
     updated_stats = await get_dashboard_stats()
     return JSONResponse(content={"status": "success", "message": "Self-healing triggered & logged successfully", "stats": updated_stats})
+
+
+@app.post("/api/scan")
+async def api_scan(request: Request):
+    """Interactive endpoint to scan suspicious messages/links against campaign memory."""
+    from engine.scanner import scan_suspicious_input
+
+    try:
+        body = await request.json()
+        input_text = body.get("text", "").strip()
+        if not input_text:
+            return JSONResponse(status_code=400, content={"error": "Text is required to scan."})
+
+        verdict = await scan_suspicious_input(input_text)
+        return JSONResponse(content=verdict.model_dump())
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+

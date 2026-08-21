@@ -288,17 +288,59 @@ async def get_active_campaigns(limit: int = 10) -> list[dict]:
 
 
 async def get_dashboard_stats() -> dict:
-    """Quick summary stats for the dashboard header."""
+    """Full dashboard stats including real efficiency metrics."""
     async with aiosqlite.connect(DATABASE_PATH) as db:
         total_scraped = (await (await db.execute("SELECT COUNT(*) FROM scraped_items")).fetchone())[0]
         total_threats = (await (await db.execute("SELECT COUNT(*) FROM threat_reports")).fetchone())[0]
         active_campaigns = (await (await db.execute("SELECT COUNT(*) FROM threat_campaigns")).fetchone())[0]
         alerts_sent = (await (await db.execute("SELECT COUNT(*) FROM threat_reports WHERE notified = 1")).fetchone())[0]
         heals = (await (await db.execute("SELECT COUNT(*) FROM scraper_telemetry WHERE heal_triggered = 1")).fetchone())[0]
+
+        # ── Real Efficiency Metrics ──────────────────────────────
+        # Items that were skipped by the heuristic gate before reaching Gemini
+        skipped_benign = (await (await db.execute(
+            "SELECT COUNT(*) FROM scraped_items WHERE status = 'SKIPPED_BENIGN'"
+        )).fetchone())[0]
+
+        # Items that were deduped (never even touched after first seen)
+        # We track this as items that went through the seen-URL gate without
+        # being re-saved. Approximated as total telemetry items_found minus items_new.
+        dup_row = await (await db.execute(
+            "SELECT COALESCE(SUM(items_found - items_new), 0) FROM scraper_telemetry WHERE status IN ('HEALTHY', 'HEALED')"
+        )).fetchone()
+        deduped_count = int(dup_row[0]) if dup_row else 0
+
+        # Items that reached Gemini (passed heuristic gate)
+        llm_calls = (await (await db.execute(
+            "SELECT COUNT(*) FROM scraped_items WHERE status IN ('ANALYZED', 'FAILED_PARSING')"
+        )).fetchone())[0]
+
+        # Self-critic corrections
+        self_corrected = (await (await db.execute(
+            "SELECT COUNT(*) FROM threat_reports WHERE audit_status = 'SELF_CORRECTED'"
+        )).fetchone())[0]
+
+        # Rising campaigns (active outbreaks)
+        rising_campaigns = (await (await db.execute(
+            "SELECT COUNT(*) FROM threat_campaigns WHERE velocity = 'RISING'"
+        )).fetchone())[0]
+
+        # Token savings rate: items skipped before LLM / total items seen
+        llm_avoided = skipped_benign + deduped_count
+        total_seen = total_scraped + deduped_count
+        token_savings_pct = round((llm_avoided / total_seen * 100) if total_seen > 0 else 0, 1)
+
         return {
             "total_scraped": total_scraped,
             "total_threats": total_threats,
             "active_campaigns": active_campaigns,
             "alerts_sent": alerts_sent,
             "self_heals": heals,
+            # Efficiency metrics
+            "deduped_count": deduped_count,
+            "skipped_benign": skipped_benign,
+            "llm_calls": llm_calls,
+            "self_corrected": self_corrected,
+            "rising_campaigns": rising_campaigns,
+            "token_savings_pct": token_savings_pct,
         }

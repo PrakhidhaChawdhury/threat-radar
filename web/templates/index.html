@@ -50,7 +50,7 @@
       </div>
       <div class="stat-card stat-card--campaign" id="stat-campaigns">
         <span class="stat-value">{{ stats.active_campaigns }}</span>
-        <span class="stat-label">Threat Campaigns</span>
+        <span class="stat-label">Active Campaigns</span>
       </div>
       <div class="stat-card stat-card--alert" id="stat-alerts">
         <span class="stat-value">{{ stats.alerts_sent }}</span>
@@ -60,6 +60,77 @@
         <span class="stat-value">{{ stats.self_heals }}</span>
         <span class="stat-label">Self-Heals</span>
       </div>
+    </div>
+
+    <!-- Efficiency Metrics Row -->
+    <div class="efficiency-bar">
+      <span class="efficiency-label">⚡ Engine Efficiency:</span>
+      <div class="efficiency-metrics">
+        <div class="eff-metric" title="Items skipped before reaching the LLM via dedup + heuristic filters">
+          <span class="eff-icon">🔒</span>
+          <span class="eff-value">{{ stats.token_savings_pct }}%</span>
+          <span class="eff-desc">LLM bypass rate</span>
+        </div>
+        <div class="eff-metric" title="Duplicate URLs filtered at zero cost before any scraping">
+          <span class="eff-icon">♻️</span>
+          <span class="eff-value">{{ stats.deduped_count }}</span>
+          <span class="eff-desc">Dupes blocked</span>
+        </div>
+        <div class="eff-metric" title="Items filtered by heuristic gate before reaching Gemini">
+          <span class="eff-icon">🎯</span>
+          <span class="eff-value">{{ stats.skipped_benign }}</span>
+          <span class="eff-desc">Noise filtered</span>
+        </div>
+        <div class="eff-metric" title="Actual Gemini API calls made">
+          <span class="eff-icon">🧠</span>
+          <span class="eff-value">{{ stats.llm_calls }}</span>
+          <span class="eff-desc">LLM calls</span>
+        </div>
+        <div class="eff-metric" title="Outputs corrected by the Self-Critic to strip hallucinations">
+          <span class="eff-icon">⚡</span>
+          <span class="eff-value">{{ stats.self_corrected }}</span>
+          <span class="eff-desc">Self-corrected</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Threat Scanner Hero ───────────────────────── -->
+  <section class="scanner-hero" aria-label="Instant Threat Scanner">
+    <div class="scanner-inner">
+      <div class="scanner-heading">
+        <span class="scanner-icon">🔍</span>
+        <div>
+          <h2 class="scanner-title">Instant Threat Check</h2>
+          <p class="scanner-sub">Paste any suspicious recruiter DM, repo link, npm package name, or SMS. Get a verdict in seconds.</p>
+        </div>
+      </div>
+
+      <div class="scanner-box">
+        <textarea
+          id="scanner-input"
+          class="scanner-textarea"
+          placeholder="Paste suspicious text here — e.g. a recruiter DM, GitHub repo link, npm package name, or phishing SMS..."
+          rows="3"
+          aria-label="Suspicious text to scan"
+        ></textarea>
+
+        <div class="scanner-actions">
+          <div class="scanner-presets" aria-label="Quick test examples">
+            <span class="presets-label">Quick tests:</span>
+            <button class="preset-btn" onclick="setPreset('fake_repo')">💼 Fake Take-Home Repo</button>
+            <button class="preset-btn" onclick="setPreset('telegram_deposit')">💳 Telegram Deposit Scam</button>
+            <button class="preset-btn" onclick="setPreset('courier_phish')">📦 Courier Phishing SMS</button>
+            <button class="preset-btn" onclick="setPreset('npm_package')">⚙️ Poisoned npm Package</button>
+          </div>
+          <button class="scan-btn" id="scan-btn" onclick="runScan()">
+            <span id="scan-btn-text">🛡️ Scan Now</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scanner Result -->
+      <div id="scanner-result" class="scanner-result" hidden aria-live="polite"></div>
     </div>
   </section>
 
@@ -270,6 +341,103 @@
   </main>
 
   <script>
+    // ── Scanner Preset Examples ────────────────────────────────
+    const PRESETS = {
+      fake_repo: `Hi! I'm a recruiter at FinTech Startup. We loved your GitHub. We have a remote frontend role ($400/wk). Please clone our demo app and run it: https://github.com/client-demo-test/webapp — just npm install && npm start to run the benchmark. Let me know your results!`,
+      telegram_deposit: `Join our team! Earn ₹2000/day by completing simple tasks: rate Google Maps locations & subscribe to YouTube channels. You need to pay a ₹500 security deposit to activate your account. Telegram: @taskmaster_earn — Message us your UPI ID to get started!`,
+      courier_phish: `DTDC Express: Your package #DTC4892013 could not be delivered due to incomplete address. Pay ₹25 redelivery fee to reschedule: https://dtdc-redeliver.xyz/pay — Offer expires in 24 hours.`,
+      npm_package: `Hey I found this Discord bot template that's super easy to setup. Just install discord-token-grabber-v14 via npm. It has everything pre-configured for selfbot features. Tons of people in our server are using it.`,
+    };
+
+    function setPreset(key) {
+      document.getElementById('scanner-input').value = PRESETS[key];
+      document.getElementById('scanner-input').focus();
+      // Clear old result
+      const result = document.getElementById('scanner-result');
+      result.hidden = true;
+      result.innerHTML = '';
+    }
+
+    // ── Run Scan ───────────────────────────────────────────────
+    async function runScan() {
+      const input = document.getElementById('scanner-input').value.trim();
+      if (!input) {
+        document.getElementById('scanner-input').focus();
+        return;
+      }
+
+      const btn = document.getElementById('scan-btn');
+      const btnText = document.getElementById('scan-btn-text');
+      const resultDiv = document.getElementById('scanner-result');
+
+      btn.disabled = true;
+      btnText.textContent = '🔍 Scanning...';
+      resultDiv.hidden = true;
+      resultDiv.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: input }),
+        });
+        const data = await res.json();
+        renderScanResult(data);
+      } catch (e) {
+        resultDiv.innerHTML = `<div class="scan-error">⚠️ Scan failed: ${e.message}</div>`;
+        resultDiv.hidden = false;
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = '🛡️ Scan Now';
+      }
+    }
+
+    function renderScanResult(data) {
+      const resultDiv = document.getElementById('scanner-result');
+      const verdict = data.verdict || 'UNKNOWN';
+      const verdictConfig = {
+        CRITICAL_SCAM: { emoji: '🚨', label: 'CRITICAL SCAM', cls: 'verdict--critical' },
+        SUSPICIOUS:    { emoji: '⚠️', label: 'SUSPICIOUS',    cls: 'verdict--suspicious' },
+        LIKELY_SAFE:   { emoji: '✅', label: 'LIKELY SAFE',   cls: 'verdict--safe' },
+      };
+      const vc = verdictConfig[verdict] || { emoji: '❓', label: verdict, cls: 'verdict--unknown' };
+
+      const redFlags = (data.red_flags_detected || []).map(f => `<li>${f}</li>`).join('');
+      const steps = (data.immediate_safety_steps || []).map((s, i) => `<li><strong>${i+1}.</strong> ${s}</li>`).join('');
+      const campaign = data.matched_campaign_fingerprint
+        ? `<div class="scan-campaign">🧬 Matched Campaign: <code>${data.matched_campaign_fingerprint}</code></div>`
+        : '';
+
+      resultDiv.innerHTML = `
+        <div class="scan-result-card ${vc.cls}">
+          <div class="scan-verdict-row">
+            <span class="scan-verdict-badge">${vc.emoji} ${vc.label}</span>
+            <span class="scan-category">${data.threat_category || ''}</span>
+            <span class="scan-confidence">Confidence: ${Math.round((data.confidence_score || 0) * 100)}%</span>
+          </div>
+          <p class="scan-trap"><strong>🪤 The Hidden Trap:</strong> ${data.plain_english_trap || '—'}</p>
+          ${campaign}
+          ${redFlags ? `
+          <div class="scan-section">
+            <span class="scan-section-label">🚩 Red Flags Detected</span>
+            <ul class="scan-list">${redFlags}</ul>
+          </div>` : ''}
+          ${steps ? `
+          <div class="scan-section">
+            <span class="scan-section-label">🛡️ Do This Right Now</span>
+            <ol class="scan-list">${steps}</ol>
+          </div>` : ''}
+        </div>
+      `;
+      resultDiv.hidden = false;
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Allow Ctrl+Enter / Cmd+Enter to trigger scan
+    document.getElementById('scanner-input').addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runScan();
+    });
+
     // ── Filter Logic ──────────────────────────────────────────
     const filterBtns = document.querySelectorAll('.filter-btn');
     const threatCards = document.querySelectorAll('.threat-card');
@@ -278,7 +446,6 @@
       btn.addEventListener('click', () => {
         filterBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
         const filter = btn.dataset.filter;
         threatCards.forEach(card => {
           if (filter === 'all' || card.dataset.risk === filter) {
@@ -295,9 +462,7 @@
     function toggleDetails(id) {
       const details = document.getElementById('details-' + id);
       const btn = document.getElementById('expand-btn-' + id);
-      const chevron = btn.querySelector('.expand-chevron');
       const isHidden = details.hidden;
-
       details.hidden = !isHidden;
       btn.setAttribute('aria-expanded', String(isHidden));
       btn.innerHTML = (isHidden ? 'Hide Details' : 'Show Details') + ' <span class="expand-chevron">' + (isHidden ? '▲' : '▼') + '</span>';
@@ -314,9 +479,7 @@
         const data = await res.json();
         if (data.status === 'success') {
           btn.innerHTML = '✅ Healed!';
-          setTimeout(() => {
-            window.location.reload();
-          }, 600);
+          setTimeout(() => { window.location.reload(); }, 600);
         } else {
           btn.innerHTML = origText;
           btn.disabled = false;
@@ -327,6 +490,25 @@
         btn.disabled = false;
       }
     }
+
+    // ── Auto-refresh efficiency bar every 60s ─────────────────
+    setInterval(async () => {
+      try {
+        const res = await fetch('/api/stats');
+        const s = await res.json();
+        const updates = {
+          'stat-scraped': s.total_scraped,
+          'stat-threats': s.total_threats,
+          'stat-campaigns': s.active_campaigns,
+          'stat-alerts': s.alerts_sent,
+          'stat-heals': s.self_heals,
+        };
+        for (const [id, val] of Object.entries(updates)) {
+          const el = document.querySelector(`#${id} .stat-value`);
+          if (el) el.textContent = val;
+        }
+      } catch (_) {}
+    }, 60000);
   </script>
 
 </body>
