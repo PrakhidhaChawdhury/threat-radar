@@ -210,6 +210,55 @@ def serve(host: str, port: int):
 
 
 @cli.command()
+@click.option("--token", default=None, help="Discord Bot Token (or set DISCORD_BOT_TOKEN in .env)")
+def bot(token: str | None):
+    """Start the interactive Discord Bot with /scan command."""
+    from notifier.discord_bot import run_bot
+    run_bot(token)
+
+
+@cli.command()
+def test_alert():
+    """Send a live test threat embed alert to the configured Discord webhook."""
+    from notifier.discord import send_threat_alert
+    from engine.schemas import ThreatIntelligencePayload
+
+    mock_payload = ThreatIntelligencePayload(
+        is_threat=True,
+        relevance_score=10,
+        risk_level="CRITICAL",
+        threat_category="Fake Internship / Job Scam",
+        threat_title="Weaponized Take-Home Task: Fake Crypto Trading Internship Repo",
+        confidence_score=0.98,
+        the_lure="Recruiter offers $500/week remote internship; requires candidate to clone repo and run npm install.",
+        the_hidden_trap="postinstall script silently executes obfuscated payload stealing Discord tokens, SSH keys, and Chrome cookies.",
+        red_flags=[
+            "Recruiter reached out via Discord DM with no company domain email",
+            "package.json contains suspicious base64 encoded postinstall script",
+            "Repo created less than 48 hours ago with 1 commit"
+        ],
+        action_checklist=[
+            "Do NOT run npm install or clone the repo",
+            "If already executed, immediately rotate Discord token and GitHub SSH keys",
+            "Report user profile to Discord Trust & Safety"
+        ],
+        campaign_fingerprint="DEV_NPM_POSTINSTALL_STEALER",
+        source_intent="DEV_ECOSYSTEM_POISONING",
+        extracted_entities=["https://github.com/client-demo-test/webapp", "discord-token-grabber"],
+    )
+
+    async def _send():
+        await init_db()
+        success = await send_threat_alert(mock_payload, "https://github.com/client-demo-test/webapp")
+        if success:
+            print("✅ Discord Webhook Test Alert sent successfully!")
+        else:
+            print("❌ Failed to send Discord Webhook Test Alert.")
+
+    asyncio.run(_send())
+
+
+@cli.command()
 def pipeline_and_serve():
     """Start both the pipeline and the web dashboard concurrently."""
     async def _run_both():
