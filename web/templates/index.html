@@ -3,352 +3,1651 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Threat Radar — Autonomous Developer Security Intelligence</title>
+  <title>ThreatRadar — Autonomous Developer Threat Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css" />
+  <style>
+/* ═══════════════════════════════════════════════════════════════
+   ThreatRadar — Production-Grade Developer Security Suite
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Surface Layers */
+  --bg-app:        #06080e;
+  --bg-panel:      #0b0f19;
+  --bg-card:       #111726;
+  --bg-card-hover: #161e31;
+  --bg-glass:      rgba(8, 12, 22, 0.88);
+
+  /* Precise Luminous Borders */
+  --border-dim:    rgba(255, 255, 255, 0.07);
+  --border-subtle: rgba(255, 255, 255, 0.12);
+  --border-bright: rgba(255, 255, 255, 0.22);
+  --inner-light:   inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* High-Contrast Typography */
+  --text-pure:     #ffffff;
+  --text-main:     #f1f5f9;
+  --text-muted:    #94a3b8;
+  --text-dim:      #64748b;
+
+  /* Primary Brand Electric Neon */
+  --cyan:          #00e5ff;
+  --cyan-dim:      rgba(0, 229, 255, 0.12);
+  --cyan-border:   rgba(0, 229, 255, 0.35);
+  --blue:          #3b82f6;
+  --blue-hover:    #2563eb;
+  --blue-dim:      rgba(59, 130, 246, 0.14);
+  --blue-border:   rgba(59, 130, 246, 0.35);
+
+  /* Semantic Alert Signals */
+  --critical:       #ff3366;
+  --critical-dim:   rgba(255, 51, 102, 0.14);
+  --critical-border:rgba(255, 51, 102, 0.35);
+
+  --warning:        #f59e0b;
+  --warning-dim:    rgba(245, 158, 11, 0.14);
+  --warning-border: rgba(245, 158, 11, 0.35);
+
+  --success:        #10b981;
+  --success-dim:    rgba(16, 185, 129, 0.14);
+  --success-border: rgba(16, 185, 129, 0.35);
+
+  --purple:         #a855f7;
+  --purple-dim:     rgba(168, 85, 247, 0.14);
+  --purple-border:  rgba(168, 85, 247, 0.35);
+
+  /* Fonts & Scale */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --max-w: 1280px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-main: 0 8px 32px -4px rgba(0, 0, 0, 0.55);
+  --glow-cyan: 0 0 32px -4px rgba(0, 229, 255, 0.3);
+  --tx: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; color-scheme: dark; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: #cbd5e1;
+  border: 1px solid var(--border-dim);
+}
+
+.container {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+[hidden], .tcard-details-drawer[hidden], #scan-result[hidden] {
+  display: none !important;
+}
+
+/* ── Top Header ───────────────────────────────────────────── */
+.header-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid var(--border-dim);
+  height: 68px;
+}
+
+.header-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.header-left { display: flex; align-items: center; gap: 16px; }
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.brand-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(59, 130, 246, 0.15));
+  border: 1px solid var(--cyan-border);
+}
+
+.brand-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text-pure);
+}
+
+.brand-title span { color: var(--cyan); }
+
+.sentinel-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background: var(--success-dim);
+  border: 1px solid var(--success-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.sentinel-pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+.header-nav { display: flex; align-items: center; gap: 24px; }
+@media (max-width: 860px) { .header-nav { display: none; } }
+
+.nav-anchor {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color var(--tx);
+}
+.nav-anchor:hover { color: var(--text-pure); }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+/* ── Buttons ──────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--tx);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%);
+  color: #06080e;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 2px 16px rgba(0, 229, 255, 0.4);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 22px rgba(0, 229, 255, 0.55);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-pure);
+}
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: var(--border-bright);
+}
+
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 8px; font-size: 11px; }
+
+.btn-icon-square {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.btn-icon-square:hover { color: #fff; border-color: var(--border-bright); }
+
+/* ── Hero Section ─────────────────────────────────────────── */
+.hero-wrapper {
+  position: relative;
+  padding: 68px 0 56px;
+  overflow: hidden;
+}
+
+.hero-glow-blob {
+  position: absolute;
+  width: 600px;
+  height: 400px;
+  border-radius: 50%;
+  filter: blur(160px);
+  pointer-events: none;
+  opacity: 0.2;
+  z-index: 0;
+}
+.hero-glow-blob--cyan { top: -100px; left: 15%; background: #00e5ff; }
+.hero-glow-blob--purple { top: -80px; right: 15%; background: #8b5cf6; }
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.kicker-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid var(--cyan-border);
+  margin-bottom: 20px;
+}
+
+.kicker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); }
+.kicker-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--cyan);
+  font-family: var(--font-mono);
+}
+
+.hero-main-title {
+  font-size: clamp(34px, 5.5vw, 56px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -1.8px;
+  color: var(--text-pure);
+  margin-bottom: 16px;
+  max-width: 900px;
+}
+
+.hero-main-title .gradient-span {
+  background: linear-gradient(135deg, #ffffff 30%, #93c5fd 70%, #00e5ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-lead {
+  font-size: 16.5px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 680px;
+  margin-bottom: 36px;
+}
+
+/* ── Interactive Scanner Console (Hero Tool) ─────────────── */
+.scanner-console-box {
+  width: 100%;
+  max-width: 860px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-main), var(--inner-light);
+  overflow: hidden;
+  margin-bottom: 40px;
+  text-align: left;
+  transition: border-color var(--tx), box-shadow var(--tx);
+}
+
+.scanner-console-box:focus-within {
+  border-color: var(--cyan);
+  box-shadow: var(--shadow-main), var(--glow-cyan);
+}
+
+.scanner-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.scanner-box-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-pure);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scanner-box-meta { display: flex; gap: 8px; }
+
+.tech-chip {
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-dim);
+  color: var(--text-muted);
+}
+
+.tech-chip--purple {
+  background: var(--purple-dim);
+  border-color: var(--purple-border);
+  color: var(--purple);
+}
+
+.scanner-box-input { padding: 16px 20px 10px; }
+
+.scanner-main-textarea {
+  width: 100%;
+  min-height: 80px;
+  background: transparent;
+  border: none;
+  color: var(--text-pure);
+  font-family: var(--font-sans);
+  font-size: 14.5px;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+.scanner-main-textarea::placeholder { color: var(--text-dim); }
+
+.scanner-box-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border-dim);
+  flex-wrap: wrap;
+}
+
+.scenario-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.scenario-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.scenario-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 5px 11px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--tx);
+}
+.scenario-chip:hover {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--cyan-border);
+  color: var(--text-pure);
+}
+
+.btn-scan-action { padding: 10px 22px; font-size: 14px; }
+
+/* Scan Result Drawer */
+.scan-result-wrapper {
+  padding: 20px;
+  border-top: 1px solid var(--border-dim);
+  animation: slide-up 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.scan-verdict-card {
+  padding: 18px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.verdict--critical { background: var(--critical-dim); border-color: var(--critical-border); }
+.verdict--suspicious { background: var(--warning-dim);  border-color: var(--warning-border); }
+.verdict--safe { background: var(--success-dim);  border-color: var(--success-border); }
+
+.verdict-top-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.verdict-badge {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.verdict--critical .verdict-badge   { color: var(--critical); }
+.verdict--suspicious .verdict-badge { color: var(--warning); }
+.verdict--safe .verdict-badge       { color: var(--success); }
+
+.verdict-cat {
+  font-size: 11.5px;
+  padding: 2px 9px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  border: 1px solid var(--border-dim);
+}
+
+.verdict-conf {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+.verdict-trap-text { font-size: 14px; color: var(--text-pure); line-height: 1.6; }
+.verdict-camp-match { font-size: 12px; color: var(--purple); font-family: var(--font-mono); }
+
+.verdict-section { display: flex; flex-direction: column; gap: 4px; }
+.verdict-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.verdict-bullet-list {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--text-main);
+}
+.verdict-bullet-list strong { color: var(--text-pure); }
+
+/* ── Hero Metrics Ticker Grid ─────────────────────────────── */
+.hero-ticker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 860px;
+}
+@media (max-width: 768px) { .hero-ticker-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.hero-ticker-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  box-shadow: var(--inner-light);
+  transition: transform var(--tx), border-color var(--tx);
+}
+.hero-ticker-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-bright);
+}
+
+.ticker-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ticker-icon { font-size: 18px; }
+.ticker-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  color: var(--text-pure);
+  font-variant-numeric: tabular-nums;
+}
+.ticker-value--cyan { color: var(--cyan); }
+.ticker-value--purple { color: var(--purple); }
+.ticker-value--amber { color: var(--warning); }
+
+.ticker-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-pure);
+  margin-bottom: 2px;
+}
+.ticker-subtext {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.35;
+}
+
+/* ── Section Containers & Headers ─────────────────────────── */
+.content-section {
+  padding: 80px 0;
+  position: relative;
+}
+.content-section--alt {
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border-dim);
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.section-headline-group {
+  text-align: center;
+  max-width: 640px;
+  margin: 0 auto 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-tagline {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+}
+
+.section-main-heading {
+  font-size: clamp(26px, 3.5vw, 36px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text-pure);
+  line-height: 1.2;
+}
+
+.section-sub-heading {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* ── Attack Vectors Grid ──────────────────────────────────── */
+.vectors-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 1024px) { .vectors-cards-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .vectors-cards-grid { grid-template-columns: 1fr; } }
+
+.vector-feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  box-shadow: var(--inner-light);
+  transition: transform var(--tx), border-color var(--tx);
+}
+.vector-feature-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-bright);
+}
+
+.vector-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vector-icon-badge { font-size: 22px; }
+.vector-category-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+
+.vector-feature-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-pure);
+  line-height: 1.35;
+}
+
+.vector-feature-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.vector-card-foot { margin-top: 4px; }
+.campaign-tag-pill {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--purple);
+  background: var(--purple-dim);
+  border: 1px solid var(--purple-border);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ── 5-Stage Living Organism Pipeline ─────────────────────── */
+.pipeline-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1080px) { .pipeline-flow-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px)  { .pipeline-flow-grid { grid-template-columns: 1fr; } }
+
+.pipeline-stage-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--inner-light);
+  transition: border-color var(--tx);
+}
+.pipeline-stage-card:hover { border-color: var(--border-bright); }
+
+.stage-counter-num {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.stage-icon { font-size: 24px; }
+.stage-title { font-size: 15px; font-weight: 700; color: var(--text-pure); }
+.stage-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; flex: 1; }
+.stage-badge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 100px;
+  display: inline-block;
+  align-self: flex-start;
+}
+.stage-badge--blue   { background: var(--blue-dim); color: var(--cyan); border: 1px solid var(--cyan-border); }
+.stage-badge--green  { background: var(--success-dim); color: var(--success); border: 1px solid var(--success-border); }
+.stage-badge--amber  { background: var(--warning-dim); color: var(--warning); border: 1px solid var(--warning-border); }
+.stage-badge--purple { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple-border); }
+.stage-badge--red    { background: var(--critical-dim); color: var(--critical); border: 1px solid var(--critical-border); }
+
+/* ── Mission Control Console ──────────────────────────────── */
+.efficiency-strip-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 32px;
+  box-shadow: var(--shadow-main), var(--inner-light);
+}
+@media (max-width: 1080px) { .efficiency-strip-row { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 600px)  { .efficiency-strip-row { grid-template-columns: repeat(2, 1fr); } }
+
+.eff-metric-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px;
+  border-right: 1px solid var(--border-dim);
+  text-align: center;
+  gap: 2px;
+}
+.eff-metric-cell:last-child { border-right: none; }
+
+.eff-metric-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-pure);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+.eff-val--cyan   { color: var(--cyan); }
+.eff-val--blue   { color: var(--blue); }
+.eff-val--purple { color: var(--purple); }
+.eff-val--amber  { color: var(--warning); }
+.eff-val--red    { color: var(--critical); }
+
+.eff-metric-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mission-control-workspace {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 1024px) { .mission-control-workspace { grid-template-columns: 1fr; } }
+
+.stream-panel-col { display: flex; flex-direction: column; gap: 14px; }
+
+.stream-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.stream-heading-group { display: flex; align-items: center; gap: 10px; }
+.stream-title-text { font-size: 16px; font-weight: 700; color: var(--text-pure); }
+.stream-count-badge {
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 100px;
+  border: 1px solid var(--border-dim);
+}
+
+.filter-btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.filter-toggle-btn {
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  color: var(--text-dim);
+  padding: 4px 11px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--tx);
+}
+.filter-toggle-btn:hover { color: #fff; border-color: var(--border-bright); }
+.filter-toggle-btn.active {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: var(--border-bright);
+  color: var(--text-pure);
+}
+
+/* Threat Cards Stack */
+.threat-cards-flow { display: flex; flex-direction: column; gap: 12px; }
+
+.threat-stream-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--inner-light);
+  transition: border-color var(--tx);
+}
+.threat-stream-card:hover { border-color: var(--border-bright); }
+
+.card-risk--critical { border-left: 3px solid var(--critical); }
+.card-risk--high     { border-left: 3px solid var(--warning); }
+.card-risk--medium   { border-left: 3px solid var(--blue); }
+.card-risk--low      { border-left: 3px solid var(--success); }
+
+.stream-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-badges-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+.risk-level-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.tag-risk--critical { background: var(--critical-dim); color: var(--critical); border: 1px solid var(--critical-border); }
+.tag-risk--high     { background: var(--warning-dim); color: var(--warning); border: 1px solid var(--warning-border); }
+.tag-risk--medium   { background: var(--blue-dim); color: var(--cyan); border: 1px solid var(--cyan-border); }
+.tag-risk--low      { background: var(--success-dim); color: var(--success); border: 1px solid var(--success-border); }
+
+.audit-status-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.tag-audit--verified  { background: var(--success-dim); color: var(--success); border: 1px solid var(--success-border); }
+.tag-audit--corrected { background: var(--purple-dim); color: var(--purple); border: 1px solid var(--purple-border); }
+
+.category-label-pill {
+  font-size: 11px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-dim);
+  padding: 2px 8px;
+  border-radius: 100px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-relevance-dial {
+  display: flex;
+  align-items: baseline;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+}
+.relevance-score-num { font-size: 16px; color: var(--cyan); }
+.relevance-score-max { font-size: 11.5px; color: var(--text-dim); }
+
+.threat-stream-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-pure);
+  line-height: 1.4;
+}
+
+.stream-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meta-intent-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-dim);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.meta-campaign-badge {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--purple);
+  background: var(--purple-dim);
+  border: 1px solid var(--purple-border);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.source-anchor-link {
+  font-size: 12px;
+  color: var(--cyan);
+  margin-left: auto;
+  transition: opacity var(--tx);
+}
+.source-anchor-link:hover { opacity: 0.8; }
+
+.card-inspect-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--border-dim);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--tx);
+}
+.card-inspect-btn:hover { border-color: var(--border-bright); color: #fff; }
+
+/* Forensic Details Drawer */
+.tcard-details-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-dim);
+  animation: slide-up 0.16s ease;
+}
+
+.forensic-item-block { display: flex; flex-direction: column; gap: 4px; }
+.forensic-heading-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+}
+.label--trap   { color: var(--critical); }
+.label--flags  { color: var(--warning); }
+.label--action { color: var(--success); }
+.label--audit  { color: var(--purple); }
+
+.forensic-body-copy { font-size: 13.5px; color: var(--text-main); line-height: 1.6; }
+.forensic-list-items {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  color: var(--text-main);
+}
+.action-items { color: #cbd5e1; }
+
+.forensic-audit-wrapper {
+  border-left: 2px solid var(--purple);
+  padding-left: 10px;
+  margin-top: 2px;
+}
+.audit-code-list li { font-family: var(--font-mono); font-size: 11.5px; color: var(--purple); }
+
+.ioc-tags-cluster { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.ioc-chip-code {
+  font-size: 11.5px;
+  background: var(--blue-dim);
+  border: 1px solid var(--blue-border);
+  color: var(--cyan);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.forensic-drawer-footer {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--text-dim);
+  padding-top: 8px;
+  border-top: 1px solid var(--border-dim);
+}
+.forensic-drawer-footer strong { color: var(--text-muted); }
+
+/* ── Sidebar Panels ───────────────────────────────────────── */
+.sidebar-panel-col { display: flex; flex-direction: column; gap: 16px; }
+
+.sidebar-widget-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--inner-light);
+}
+
+.widget-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.widget-title-text { font-size: 14px; font-weight: 700; color: #fff; }
+
+.campaigns-list-stack { display: flex; flex-direction: column; gap: 6px; }
+.campaign-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-dim);
+}
+
+.campaign-row-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.campaign-id-code {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--purple);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.campaign-category-text { font-size: 10.5px; color: var(--text-dim); }
+
+.campaign-velocity-cluster { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.velocity-badge-pill {
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+}
+.vel--rising { background: var(--critical-dim); color: var(--critical); border: 1px solid var(--critical-border); }
+.vel--active { background: var(--warning-dim); color: var(--warning); border: 1px solid var(--warning-border); }
+.vel--new    { background: var(--blue-dim); color: var(--cyan); border: 1px solid var(--cyan-border); }
+.campaign-report-count { font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); }
+
+/* Telemetry Items */
+.telemetry-stream-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.telemetry-log-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-dim);
+}
+.telem--healed   { border-color: var(--success-border); }
+.telem--degraded { border-color: var(--warning-border); background: var(--warning-dim); }
+.telem--failed   { border-color: var(--critical-border); background: var(--critical-dim); }
+
+.telem-top-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.telem-source-title { font-size: 12px; font-weight: 700; color: var(--text-pure); }
+.telem-badge-pill { font-size: 10px; font-weight: 800; letter-spacing: 0.4px; }
+.pill--healthy  { color: var(--success); }
+.pill--healed   { color: var(--success); }
+.pill--degraded { color: var(--warning); }
+.pill--failed   { color: var(--critical); }
+
+.telem-error-line { font-size: 11px; font-family: var(--font-mono); color: var(--critical); line-height: 1.35; }
+.telem-bottom-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+.telem-bottom-line strong { color: var(--text-muted); }
+.healed-badge-chip {
+  color: var(--warning);
+  background: var(--warning-dim);
+  border: 1px solid var(--warning-border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.telem-time-stamp { margin-left: auto; font-family: var(--font-mono); }
+
+/* ── Footer ───────────────────────────────────────────────── */
+.footer-wrap {
+  border-top: 1px solid var(--border-dim);
+  padding: 28px 0;
+  margin-top: 40px;
+}
+
+.footer-content-flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-brand-title { font-size: 14px; font-weight: 800; color: #fff; }
+.footer-text-dim { font-size: 12px; color: var(--text-dim); }
+  </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="nav">
-    <div class="nav-inner">
-      <a class="nav-brand" href="/">
-        <span class="nav-logo">⬡</span>
-        <span class="nav-name">Threat<span class="nav-name-accent">Radar</span></span>
-      </a>
-      <div class="nav-center">
-        <div class="live-pill">
-          <span class="live-dot"></span>
-          <span>Live Intelligence Active</span>
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- TOP NAVIGATION BAR (Glassmorphic)                      -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <header class="header-bar">
+    <div class="header-inner">
+      <div class="header-left">
+        <a class="brand-group" href="/">
+          <div class="brand-logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L3 7V13C3 18.5 6.8 23.6 12 25C17.2 23.6 21 18.5 21 13V7L12 2Z" stroke="url(#brand-grad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M12 7V13M12 17H12.01" stroke="#00e5ff" stroke-width="2.2" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="brand-grad" x1="3" y1="2" x2="21" y2="25" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#00e5ff"/>
+                  <stop offset="1" stop-color="#8b5cf6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="brand-title">Threat<span>Radar</span></span>
+        </a>
+        <div class="sentinel-pill">
+          <span class="sentinel-pulse"></span>
+          <span>Sentinel Live</span>
         </div>
       </div>
-      <div class="nav-actions">
-        <button class="btn-ghost" id="simulate-heal-btn" onclick="simulateSelfHeal()">🔧 Demo Auto-Heal</button>
-        <button class="btn-ghost" onclick="window.location.reload()">↻ Refresh</button>
-        <a class="btn-primary" href="#mission-control">Mission Control ↓</a>
+
+      <nav class="header-nav">
+        <a href="#scanner" class="nav-anchor">Scanner</a>
+        <a href="#vectors" class="nav-anchor">Attack Vectors</a>
+        <a href="#engine" class="nav-anchor">Engine</a>
+        <a href="#mission-control" class="nav-anchor">Mission Control</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-heal-top" onclick="simulateSelfHeal()">
+          <span>⚡</span> Auto-Heal Demo
+        </button>
+        <button class="btn-icon-square" onclick="window.location.reload()" title="Refresh Telemetry">
+          ↻
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-bg-grid"></div>
-    <div class="hero-glow hero-glow--red"></div>
-    <div class="hero-glow hero-glow--blue"></div>
-    <div class="hero-inner">
-      <div class="hero-badge">
-        <span class="hero-badge-dot"></span>
-        Built for Into the Scrape-Verse · Bright Data × WeMakeDevs
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- HERO SECTION                                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <section class="hero-wrapper">
+    <div class="hero-glow-blob hero-glow-blob--cyan"></div>
+    <div class="hero-glow-blob hero-glow-blob--purple"></div>
+
+    <div class="container hero-content">
+      <div class="kicker-pill">
+        <span class="kicker-dot"></span>
+        <span class="kicker-text">BRIGHT DATA SCRAPER STUDIO × GEMINI 3.7 FLASH</span>
       </div>
-      <h1 class="hero-headline">
-        Your autonomous shield<br />against developer scams
+
+      <h1 class="hero-main-title">
+        Autonomous Threat Defense<br />
+        <span class="gradient-span">for Developers & Builders</span>
       </h1>
-      <p class="hero-sub">
-        Real-time threat intelligence grounded in live scraped data — not generic AI guesses.
-        Paste a recruiter DM, GitHub repo, or npm package. Get an instant, audited verdict.
+
+      <p class="hero-lead">
+        Grounded in live web intelligence — not hallucinations. ThreatRadar intercepts malicious take-home coding repos, poisoned packages, and recruiter scams in seconds.
       </p>
 
-      <!-- Scanner -->
-      <div class="scanner-card">
-        <div class="scanner-label">🔍 Instant Threat Interceptor</div>
-        <textarea
-          id="scanner-input"
-          class="scanner-input"
-          placeholder="Paste anything suspicious — a recruiter DM, GitHub repo link, npm package name, Telegram offer, or SMS..."
-          rows="3"
-        ></textarea>
-        <div class="scanner-footer">
-          <div class="scanner-presets">
-            <span class="presets-tag">Quick tests:</span>
-            <button class="preset" onclick="loadPreset('repo')">💼 Fake Take-Home Repo</button>
-            <button class="preset" onclick="loadPreset('telegram')">💳 Telegram Deposit Scam</button>
-            <button class="preset" onclick="loadPreset('courier')">📦 Courier Phishing SMS</button>
-            <button class="preset" onclick="loadPreset('npm')">⚙️ Poisoned npm Package</button>
+      <!-- ── COMMAND CENTER SCANNER ──────────────────────── -->
+      <div class="scanner-console-box" id="scanner">
+        <div class="scanner-box-header">
+          <div class="scanner-box-title">
+            <span>🔍</span>
+            <span>Lure Interceptor & Scam Scanner</span>
           </div>
-          <button class="btn-scan" id="scan-btn" onclick="runScan()">
-            <span id="scan-btn-label">🛡️ Scan Now</span>
+          <div class="scanner-box-meta">
+            <span class="tech-chip">GEMINI 3.7 FLASH</span>
+            <span class="tech-chip tech-chip--purple">SELF-CRITIC AUDITED</span>
+          </div>
+        </div>
+
+        <div class="scanner-box-input">
+          <textarea
+            id="scanner-input"
+            class="scanner-main-textarea"
+            placeholder="Paste suspicious text — e.g. a recruiter DM, GitHub repo URL, npm package, Telegram gig offer, or SMS lure..."
+            rows="3"
+          ></textarea>
+        </div>
+
+        <div class="scanner-box-footer">
+          <div class="scenario-chips-row">
+            <span class="scenario-label">Test Scenarios:</span>
+            <button class="scenario-chip" onclick="loadPreset('repo')">💼 Take-Home Task</button>
+            <button class="scenario-chip" onclick="loadPreset('telegram')">💳 Telegram UPI Deposit</button>
+            <button class="scenario-chip" onclick="loadPreset('npm')">⚙️ Poisoned npm Package</button>
+            <button class="scenario-chip" onclick="loadPreset('courier')">📦 Swag Phishing</button>
+          </div>
+          <button class="btn btn-primary btn-scan-action" id="scan-btn" onclick="runScan()">
+            <span id="scan-btn-label">⚡ Scan & Intercept</span>
           </button>
         </div>
+
+        <!-- SCAN RESULT DRAWER -->
+        <div id="scan-result" class="scan-result-wrapper" hidden></div>
       </div>
 
-      <!-- Scan Result -->
-      <div id="scan-result" class="scan-result" hidden></div>
+      <!-- HERO STATS ROW -->
+      <div class="hero-ticker-grid">
+        <div class="hero-ticker-card">
+          <div class="ticker-top">
+            <span class="ticker-icon">🛡️</span>
+            <span class="ticker-value" id="h-threats">{{ stats.total_threats }}</span>
+          </div>
+          <span class="ticker-title">Threats Analyzed</span>
+          <span class="ticker-subtext">Evaluated vs developer persona</span>
+        </div>
 
-      <!-- Hero Stats -->
-      <div class="hero-stats">
-        <div class="hstat">
-          <span class="hstat-value" id="h-threats">{{ stats.total_threats }}</span>
-          <span class="hstat-label">Threats Detected</span>
+        <div class="hero-ticker-card">
+          <div class="ticker-top">
+            <span class="ticker-icon">⚡</span>
+            <span class="ticker-value ticker-value--cyan" id="h-bypass">{{ stats.token_savings_pct }}%</span>
+          </div>
+          <span class="ticker-title">LLM Token Bypass</span>
+          <span class="ticker-subtext">Zero tokens wasted on benign noise</span>
         </div>
-        <div class="hstat-div"></div>
-        <div class="hstat">
-          <span class="hstat-value" id="h-bypass">{{ stats.token_savings_pct }}%</span>
-          <span class="hstat-label">LLM Token Bypass</span>
+
+        <div class="hero-ticker-card">
+          <div class="ticker-top">
+            <span class="ticker-icon">🧬</span>
+            <span class="ticker-value ticker-value--purple" id="h-campaigns">{{ stats.active_campaigns }}</span>
+          </div>
+          <span class="ticker-title">Active Campaigns</span>
+          <span class="ticker-subtext">Clustered by attack vector</span>
         </div>
-        <div class="hstat-div"></div>
-        <div class="hstat">
-          <span class="hstat-value" id="h-campaigns">{{ stats.active_campaigns }}</span>
-          <span class="hstat-label">Active Campaigns</span>
-        </div>
-        <div class="hstat-div"></div>
-        <div class="hstat">
-          <span class="hstat-value" id="h-corrected">{{ stats.self_corrected }}</span>
-          <span class="hstat-label">Hallucinations Caught</span>
+
+        <div class="hero-ticker-card">
+          <div class="ticker-top">
+            <span class="ticker-icon">🎯</span>
+            <span class="ticker-value ticker-value--amber" id="h-corrected">{{ stats.self_corrected }}</span>
+          </div>
+          <span class="ticker-title">Critic Corrections</span>
+          <span class="ticker-subtext">Hallucinations stripped live</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ATTACK VECTORS -->
-  <section class="vectors">
-    <div class="section-inner">
-      <div class="section-header">
-        <p class="section-eyebrow">The Asymmetric Risk</p>
-        <h2 class="section-title">Four ways developers get hit</h2>
-        <p class="section-desc">99 days nothing. 1 day — your GitHub account, Discord tokens, or bank account is gone. Threat Radar autonomously monitors all four attack surfaces.</p>
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- ATTACK VECTORS SECTION                                 -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <section class="content-section" id="vectors">
+    <div class="container">
+      <div class="section-headline-group">
+        <span class="section-tagline">ASYMMETRIC RISK SURFACE</span>
+        <h2 class="section-main-heading">How Developers Get Targeted</h2>
+        <p class="section-sub-heading">
+          Standard antiviruses ignore developer tooling. ThreatRadar monitors the four exact vectors targeting early-career builders.
+        </p>
       </div>
-      <div class="vectors-grid">
-        <div class="vector-card vector-card--red">
-          <div class="vector-icon">💼</div>
-          <h3 class="vector-title">Weaponized Interviews</h3>
-          <p class="vector-desc">Recruiters assign a "take-home coding task." Running <code>npm install</code> executes a silent postinstall payload stealing Discord tokens, SSH keys, and browser cookies.</p>
-          <div class="vector-tag">DEV_NPM_POSTINSTALL_STEALER</div>
+
+      <div class="vectors-cards-grid">
+        <div class="vector-feature-card">
+          <div class="vector-card-top">
+            <span class="vector-icon-badge">💼</span>
+            <span class="vector-category-name">Interviews</span>
+          </div>
+          <h3 class="vector-feature-title">Weaponized Take-Home Tasks</h3>
+          <p class="vector-feature-desc">
+            Fake recruiters on LinkedIn & Telegram send a "frontend assessment repo." Running <code>npm install</code> triggers a silent postinstall script that steals Discord tokens, SSH keys, and browser cookies.
+          </p>
+          <div class="vector-card-foot">
+            <code class="campaign-tag-pill">DEV_NPM_POSTINSTALL_STEALER</code>
+          </div>
         </div>
-        <div class="vector-card vector-card--amber">
-          <div class="vector-icon">⚙️</div>
-          <h3 class="vector-title">Poisoned Packages</h3>
-          <p class="vector-desc">Typosquatted npm packages and Discord bot templates with obfuscated stealers. One wrong keystroke on <code>discord-selfbot-v14</code> and your session is exfiltrated.</p>
-          <div class="vector-tag">DEV_NPM_TYPOSQUATTING</div>
+
+        <div class="vector-feature-card">
+          <div class="vector-card-top">
+            <span class="vector-icon-badge">⚙️</span>
+            <span class="vector-category-name">Supply Chain</span>
+          </div>
+          <h3 class="vector-feature-title">Poisoned & Typosquatted Packages</h3>
+          <p class="vector-feature-desc">
+            Malicious packages mimicking popular libraries (e.g. <code>discord-selfbot-v14</code>). One accidental install exfiltrates system credentials in the background.
+          </p>
+          <div class="vector-card-foot">
+            <code class="campaign-tag-pill">DEV_NPM_TYPOSQUATTING</code>
+          </div>
         </div>
-        <div class="vector-card vector-card--purple">
-          <div class="vector-icon">💳</div>
-          <h3 class="vector-title">Telegram Task Scams</h3>
-          <p class="vector-desc">"Earn ₹2,000/day rating Google Maps. Pay ₹500 security deposit to activate." Classic advance-fee fraud targeting students hunting for pocket money.</p>
-          <div class="vector-tag">CAREER_TELEGRAM_TASK_DEPOSIT</div>
+
+        <div class="vector-feature-card">
+          <div class="vector-card-top">
+            <span class="vector-icon-badge">💳</span>
+            <span class="vector-category-name">Gigs & Tasks</span>
+          </div>
+          <h3 class="vector-feature-title">Telegram Task & Deposit Scams</h3>
+          <p class="vector-feature-desc">
+            "Earn ₹2,000/day rating apps or testing AI tools." Victims are asked to pay a ₹500 "refundable security deposit" via UPI before accessing task payouts.
+          </p>
+          <div class="vector-card-foot">
+            <code class="campaign-tag-pill">CAREER_TELEGRAM_TASK_DEPOSIT</code>
+          </div>
         </div>
-        <div class="vector-card vector-card--blue">
-          <div class="vector-icon">📦</div>
-          <h3 class="vector-title">Delivery Phishing</h3>
-          <p class="vector-desc">"Your DTDC hackathon swag is on hold — pay ₹25 redelivery fee." Targets students expecting packages. UPI QR scam disguised as a tracking link.</p>
-          <div class="vector-tag">COURIER_REDELIVERY_SMS_LURE</div>
+
+        <div class="vector-feature-card">
+          <div class="vector-card-top">
+            <span class="vector-icon-badge">📦</span>
+            <span class="vector-category-name">Phishing</span>
+          </div>
+          <h3 class="vector-feature-title">Hackathon Swag Phishing</h3>
+          <p class="vector-feature-desc">
+            "Your DTDC hackathon kit could not be delivered due to address mismatch. Pay ₹25 redelivery fee." Targets students with fake UPI collection requests.
+          </p>
+          <div class="vector-card-foot">
+            <code class="campaign-tag-pill">COURIER_REDELIVERY_SMS_LURE</code>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- HOW IT WORKS -->
-  <section class="pipeline">
-    <div class="section-inner">
-      <div class="section-header">
-        <p class="section-eyebrow">The Living Organism</p>
-        <h2 class="section-title">Not a wrapper. An autonomous intelligence engine.</h2>
-        <p class="section-desc">Most tools pass everything to an LLM and blindly trust the output. Threat Radar has five organs that work together — sensing, filtering, analyzing, auditing, and reflexing.</p>
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- LIVING ENGINE ARCHITECTURE SECTION                     -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <section class="content-section content-section--alt" id="engine">
+    <div class="container">
+      <div class="section-headline-group">
+        <span class="section-tagline">AUTONOMOUS METABOLISM</span>
+        <h2 class="section-main-heading">Not a Wrapper. A 5-Stage Living Organism.</h2>
+        <p class="section-sub-heading">
+          Every raw webpage passes through deterministic gates, metacognitive self-auditing, and campaign velocity clustering.
+        </p>
       </div>
-      <div class="pipeline-steps">
-        <div class="pipe-step">
-          <div class="pipe-num">01</div>
-          <div class="pipe-icon">📡</div>
-          <h3 class="pipe-title">Bright Data Sensory Layer</h3>
-          <p class="pipe-desc">Scraper Studio collectors autonomously monitor GitHub Security Advisories and HackerNews threat feeds. When DOM structures change, a <strong>self-healing subprocess</strong> detects breakage and repairs selectors automatically.</p>
-          <div class="pipe-tag pipe-tag--blue">Bright Data Scraper Studio</div>
+
+      <div class="pipeline-flow-grid">
+        <div class="pipeline-stage-card">
+          <span class="stage-counter-num">01 / SENSORY</span>
+          <span class="stage-icon">📡</span>
+          <h4 class="stage-title">Scraper Studio</h4>
+          <p class="stage-desc">
+            Bright Data collectors autonomously scrape security feeds. When DOM changes, a self-healing subprocess auto-repairs selectors.
+          </p>
+          <span class="stage-badge stage-badge--blue">Bright Data DCA</span>
         </div>
-        <div class="pipe-arrow">→</div>
-        <div class="pipe-step">
-          <div class="pipe-num">02</div>
-          <div class="pipe-icon">🔒</div>
-          <h3 class="pipe-title">Metabolic Gates</h3>
-          <p class="pipe-desc"><strong>SHA-256 SQLite deduplication</strong> skips seen URLs in 0.1ms. <strong>Regex Intent-Bucket heuristics</strong> filter ~60% of benign noise. The LLM only sees high-signal items.</p>
-          <div class="pipe-tag pipe-tag--green">{{ stats.token_savings_pct }}% LLM Bypass</div>
+
+        <div class="pipeline-stage-card">
+          <span class="stage-counter-num">02 / METABOLIC</span>
+          <span class="stage-icon">🔒</span>
+          <h4 class="stage-title">Zero-Cost Gates</h4>
+          <p class="stage-desc">
+            SHA-256 SQLite Dedup and Regex Intent heuristics filter ~60% benign noise. Zero tokens wasted on non-threats.
+          </p>
+          <span class="stage-badge stage-badge--green">{{ stats.token_savings_pct }}% Token Bypass</span>
         </div>
-        <div class="pipe-arrow">→</div>
-        <div class="pipe-step">
-          <div class="pipe-num">03</div>
-          <div class="pipe-icon">🧠</div>
-          <h3 class="pipe-title">Gemini Threat Evaluator</h3>
-          <p class="pipe-desc">Structured Gemini analysis extracts The Lure, The Hidden Trap, Red Flags, and Action Steps — scored 1-10 for relevance against the exact developer user profile.</p>
-          <div class="pipe-tag pipe-tag--amber">Gemini 3.7 Flash</div>
+
+        <div class="pipeline-stage-card">
+          <span class="stage-counter-num">03 / CEREBRAL</span>
+          <span class="stage-icon">🧠</span>
+          <h4 class="stage-title">Threat Evaluator</h4>
+          <p class="stage-desc">
+            Gemini 3.7 Flash extracts The Lure, The Hidden Trap, Red Flags, and Safety Actions — scored 1-10 for User Zero.
+          </p>
+          <span class="stage-badge stage-badge--amber">Gemini 3.7 Flash</span>
         </div>
-        <div class="pipe-arrow">→</div>
-        <div class="pipe-step">
-          <div class="pipe-num">04</div>
-          <div class="pipe-icon">⚡</div>
-          <h3 class="pipe-title">Self-Critic Metacognition</h3>
-          <p class="pipe-desc">The agent watches its own output. Hallucinated IOCs not present in source text are stripped. Over-reactions corrected. Each output stamped <strong>VERIFIED</strong> or <strong>SELF-CORRECTED</strong>.</p>
-          <div class="pipe-tag pipe-tag--purple">{{ stats.self_corrected }} Corrections Made</div>
+
+        <div class="pipeline-stage-card">
+          <span class="stage-counter-num">04 / AUDIT</span>
+          <span class="stage-icon">🛡️</span>
+          <h4 class="stage-title">Self-Critic Guard</h4>
+          <p class="stage-desc">
+            The agent audits its own output. Strips ungrounded IOCs, corrects over-reactions, and stamps outputs as VERIFIED or SELF-CORRECTED.
+          </p>
+          <span class="stage-badge stage-badge--purple">{{ stats.self_corrected }} Corrections</span>
         </div>
-        <div class="pipe-arrow">→</div>
-        <div class="pipe-step">
-          <div class="pipe-num">05</div>
-          <div class="pipe-icon">📣</div>
-          <h3 class="pipe-title">Velocity-Adaptive Reflex</h3>
-          <p class="pipe-desc">Threats cluster into campaigns (NEW → ACTIVE → RISING). When a campaign hits RISING velocity, the alert threshold drops — catching live outbreaks before they spread.</p>
-          <div class="pipe-tag pipe-tag--red">Discord Alerts</div>
+
+        <div class="pipeline-stage-card">
+          <span class="stage-counter-num">05 / REFLEX</span>
+          <span class="stage-icon">📣</span>
+          <h4 class="stage-title">Adaptive Alerting</h4>
+          <p class="stage-desc">
+            Clusters attacks into campaigns. Active outbreaks lower alert thresholds and notify Discord webhooks instantly.
+          </p>
+          <span class="stage-badge stage-badge--red">Discord Outbreak Alert</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- MISSION CONTROL -->
-  <section class="mission-control" id="mission-control">
-    <div class="section-inner">
-      <div class="section-header">
-        <p class="section-eyebrow">Live Dashboard</p>
-        <h2 class="section-title">Mission Control</h2>
-        <p class="section-desc">Real data. Real threats. Real-time autonomous telemetry from the live pipeline.</p>
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- MISSION CONTROL CONSOLE                                -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <section class="content-section" id="mission-control">
+    <div class="container">
+      <div class="section-headline-group">
+        <span class="section-tagline">REAL-TIME MISSION CONTROL</span>
+        <h2 class="section-main-heading">Live Telemetry & Threat Stream</h2>
+        <p class="section-sub-heading">
+          Real-time metrics, active campaign outbreaks, and scraper telemetry straight from SQLite.
+        </p>
       </div>
 
-      <!-- Efficiency Strip -->
-      <div class="eff-strip">
-        <div class="eff-item">
-          <span class="eff-val">{{ stats.total_scraped }}</span>
-          <span class="eff-lbl">Items Indexed</span>
+      <!-- LIVE EFFICIENCY STRIP -->
+      <div class="efficiency-strip-row">
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val">{{ stats.total_scraped }}</span>
+          <span class="eff-metric-label">Items Indexed</span>
         </div>
-        <div class="eff-item eff-item--green">
-          <span class="eff-val">{{ stats.token_savings_pct }}%</span>
-          <span class="eff-lbl">LLM Bypass Rate</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val eff-val--cyan">{{ stats.token_savings_pct }}%</span>
+          <span class="eff-metric-label">LLM Bypass Rate</span>
         </div>
-        <div class="eff-item">
-          <span class="eff-val">{{ stats.deduped_count }}</span>
-          <span class="eff-lbl">Dupes Blocked</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val">{{ stats.deduped_count }}</span>
+          <span class="eff-metric-label">Dupes Blocked</span>
         </div>
-        <div class="eff-item">
-          <span class="eff-val">{{ stats.skipped_benign }}</span>
-          <span class="eff-lbl">Noise Filtered</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val">{{ stats.skipped_benign }}</span>
+          <span class="eff-metric-label">Noise Filtered</span>
         </div>
-        <div class="eff-item eff-item--blue">
-          <span class="eff-val">{{ stats.llm_calls }}</span>
-          <span class="eff-lbl">LLM Calls Made</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val eff-val--blue">{{ stats.llm_calls }}</span>
+          <span class="eff-metric-label">Gemini Calls</span>
         </div>
-        <div class="eff-item eff-item--purple">
-          <span class="eff-val">{{ stats.self_corrected }}</span>
-          <span class="eff-lbl">Self-Corrected</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val eff-val--purple">{{ stats.self_corrected }}</span>
+          <span class="eff-metric-label">Self-Corrected</span>
         </div>
-        <div class="eff-item eff-item--amber">
-          <span class="eff-val">{{ stats.alerts_sent }}</span>
-          <span class="eff-lbl">Alerts Sent</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val eff-val--amber">{{ stats.alerts_sent }}</span>
+          <span class="eff-metric-label">Alerts Sent</span>
         </div>
-        <div class="eff-item eff-item--red">
-          <span class="eff-val">{{ stats.active_campaigns }}</span>
-          <span class="eff-lbl">Active Campaigns</span>
+        <div class="eff-metric-cell">
+          <span class="eff-metric-val eff-val--red">{{ stats.active_campaigns }}</span>
+          <span class="eff-metric-label">Campaign Clusters</span>
         </div>
       </div>
 
-      <!-- Grid -->
-      <div class="mc-grid">
-        <!-- Left: Threat Feed -->
-        <div class="mc-col">
-          <div class="mc-section-head">
-            <h3 class="mc-title">⚡ Threat Intelligence Feed</h3>
-            <div class="filter-row">
-              <button class="filt active" data-f="all">All</button>
-              <button class="filt filt--crit" data-f="CRITICAL">🔴 Critical</button>
-              <button class="filt filt--high" data-f="HIGH">🟠 High</button>
-              <button class="filt filt--med" data-f="MEDIUM">🟡 Medium</button>
-              <button class="filt filt--low" data-f="LOW">🟢 Low</button>
+      <!-- TWO COLUMN WORKSPACE -->
+      <div class="mission-control-workspace">
+        <!-- LEFT: THREAT INTEL FEED -->
+        <div class="stream-panel-col">
+          <div class="stream-filter-bar">
+            <div class="stream-heading-group">
+              <h3 class="stream-title-text">⚡ Live Threat Intelligence Feed</h3>
+              <span class="stream-count-badge">{{ threats|length }} reports</span>
+            </div>
+            <div class="filter-btn-group">
+              <button class="filter-toggle-btn active" data-filter="all">All</button>
+              <button class="filter-toggle-btn" data-filter="CRITICAL">🔴 Critical</button>
+              <button class="filter-toggle-btn" data-filter="HIGH">🟠 High</button>
+              <button class="filter-toggle-btn" data-filter="MEDIUM">🟡 Medium</button>
+              <button class="filter-toggle-btn" data-filter="LOW">🟢 Low</button>
             </div>
           </div>
-          <div class="threat-feed" id="threat-feed">
+
+          <div class="threat-cards-flow" id="threat-feed">
             {% if threats %}
               {% for t in threats %}
-              <article class="tcard tcard--{{ t.risk_level | lower }}" data-risk="{{ t.risk_level }}" id="tc-{{ t.id }}">
-                <div class="tcard-top">
-                  <div class="tcard-badges">
-                    <span class="rbadge rbadge--{{ t.risk_level | lower }}">
-                      {% if t.risk_level == 'CRITICAL' %}🔴{% elif t.risk_level == 'HIGH' %}🟠{% elif t.risk_level == 'MEDIUM' %}🟡{% else %}🟢{% endif %}
-                      {{ t.risk_level }}
-                    </span>
+              <article class="threat-stream-card card-risk--{{ t.risk_level | lower }}" data-risk="{{ t.risk_level }}" id="tc-{{ t.id }}">
+                <div class="stream-card-top">
+                  <div class="card-badges-row">
+                    <span class="risk-level-tag tag-risk--{{ t.risk_level | lower }}">{{ t.risk_level }}</span>
                     {% if t.audit_status == 'SELF_CORRECTED' %}
-                    <span class="abadge abadge--corrected">⚡ Self-Corrected</span>
+                    <span class="audit-status-tag tag-audit--corrected" title="Critic verified and stripped ungrounded hallucinations">⚡ Self-Corrected</span>
                     {% else %}
-                    <span class="abadge abadge--verified">✓ Verified</span>
+                    <span class="audit-status-tag tag-audit--verified" title="Passed full Grounding & Metacognition audit">✓ Verified</span>
                     {% endif %}
-                    <span class="catbadge">{{ t.threat_category }}</span>
+                    <span class="category-label-pill">{{ t.threat_category }}</span>
                   </div>
-                  <span class="tcard-score">{{ t.relevance_score }}<span class="score-den">/10</span></span>
+                  <div class="card-relevance-dial" title="Relevance score to User Zero profile">
+                    <span class="relevance-score-num">{{ t.relevance_score }}</span>
+                    <span class="relevance-score-max">/10</span>
+                  </div>
                 </div>
-                <h4 class="tcard-title">{{ t.threat_title }}</h4>
-                <div class="tcard-meta">
-                  <span class="intent-chip">{{ t.source_intent | replace('_', ' ') }}</span>
+
+                <h4 class="threat-stream-title">{{ t.threat_title }}</h4>
+
+                <div class="stream-card-meta">
+                  <span class="meta-intent-badge">{{ t.source_intent | replace('_', ' ') }}</span>
                   {% if t.campaign_fingerprint %}
-                  <span class="camp-chip">🧬 {{ t.campaign_fingerprint }}</span>
+                  <span class="meta-campaign-badge">🧬 {{ t.campaign_fingerprint }}</span>
                   {% endif %}
-                  <a class="src-link" href="{{ t.source_url }}" target="_blank" rel="noopener">↗ Source</a>
+                  <a class="source-anchor-link" href="{{ t.source_url }}" target="_blank" rel="noopener">
+                    ↗ View Source
+                  </a>
                 </div>
-                <button class="expand-btn" id="eb-{{ t.id }}" onclick="toggleCard({{ t.id }})">
-                  Show Details <span class="chev">▼</span>
+
+                <button class="card-inspect-btn" id="eb-{{ t.id }}" onclick="toggleCard({{ t.id }})">
+                  Inspect Forensic Details ▼
                 </button>
-                <div class="tcard-details" id="td-{{ t.id }}" hidden>
+
+                <!-- EXPANDABLE DETAILS ACCORDION -->
+                <div class="tcard-details-drawer" id="td-{{ t.id }}" hidden>
                   {% if t.the_lure %}
-                  <div class="detail-row">
-                    <span class="detail-key">🎯 The Lure</span>
-                    <p class="detail-val">{{ t.the_lure }}</p>
+                  <div class="forensic-item-block">
+                    <span class="forensic-heading-label">🎯 The Lure (What the victim sees)</span>
+                    <p class="forensic-body-copy">{{ t.the_lure }}</p>
                   </div>
                   {% endif %}
+
                   {% if t.the_hidden_trap %}
-                  <div class="detail-row">
-                    <span class="detail-key">🪤 The Hidden Trap</span>
-                    <p class="detail-val">{{ t.the_hidden_trap }}</p>
+                  <div class="forensic-item-block">
+                    <span class="forensic-heading-label label--trap">🪤 The Hidden Trap (What malicious code does)</span>
+                    <p class="forensic-body-copy">{{ t.the_hidden_trap }}</p>
                   </div>
                   {% endif %}
+
                   {% if t.red_flags %}
-                  <div class="detail-row">
-                    <span class="detail-key">🚩 Red Flags</span>
-                    <ul class="detail-list">{% for f in t.red_flags %}<li>{{ f }}</li>{% endfor %}</ul>
+                  <div class="forensic-item-block">
+                    <span class="forensic-heading-label label--flags">🚩 Red Flags Detected</span>
+                    <ul class="forensic-list-items">
+                      {% for f in t.red_flags %}<li>{{ f }}</li>{% endfor %}
+                    </ul>
                   </div>
                   {% endif %}
+
                   {% if t.action_checklist %}
-                  <div class="detail-row detail-row--action">
-                    <span class="detail-key">🛡️ Do This Right Now</span>
-                    <ol class="detail-list">{% for a in t.action_checklist %}<li>{{ a }}</li>{% endfor %}</ol>
+                  <div class="forensic-item-block">
+                    <span class="forensic-heading-label label--action">🛡️ Immediate Action Steps</span>
+                    <ol class="forensic-list-items action-items">
+                      {% for a in t.action_checklist %}<li>{{ a }}</li>{% endfor %}
+                    </ol>
                   </div>
                   {% endif %}
+
                   {% if t.extracted_entities %}
-                  <div class="detail-row">
-                    <span class="detail-key">🏷️ IOC Indicators</span>
-                    <div class="ioc-chips">{% for e in t.extracted_entities %}<code class="ioc">{{ e }}</code>{% endfor %}</div>
+                  <div class="forensic-item-block">
+                    <span class="forensic-heading-label">🏷️ Extracted Indicators (IOCs)</span>
+                    <div class="ioc-tags-cluster">
+                      {% for e in t.extracted_entities %}<code class="ioc-chip-code">{{ e }}</code>{% endfor %}
+                    </div>
                   </div>
                   {% endif %}
+
                   {% if t.audit_corrections %}
-                  <div class="detail-row detail-row--audit">
-                    <span class="detail-key">🛡️ Critic Audit Log</span>
-                    <ul class="detail-list audit-log">{% for c in t.audit_corrections %}<li><code>{{ c }}</code></li>{% endfor %}</ul>
+                  <div class="forensic-item-block forensic-audit-wrapper">
+                    <span class="forensic-heading-label label--audit">🛡️ Self-Critic Audit Trail</span>
+                    <ul class="forensic-list-items audit-code-list">
+                      {% for c in t.audit_corrections %}<li><code>{{ c }}</code></li>{% endfor %}
+                    </ul>
                   </div>
                   {% endif %}
-                  <div class="detail-footer">
+
+                  <div class="forensic-drawer-footer">
                     <span>Campaign: <strong>{{ t.campaign_fingerprint or '—' }}</strong></span>
                     <span>Confidence: {{ "%.0f"|format(t.confidence_score * 100) }}%</span>
-                    <span>{{ t.analyzed_at[:16] if t.analyzed_at else '' }}</span>
+                    <span>Indexed: {{ t.analyzed_at[:16] if t.analyzed_at else '' }}</span>
                   </div>
                 </div>
               </article>
               {% endfor %}
             {% else %}
-            <div class="empty-state">
-              <span class="empty-icon">🔍</span>
-              <p>No threats indexed yet.</p>
-              <code>uv run python main.py once</code>
+            <div style="padding: 32px; text-align: center; color: var(--text-dim); font-size: 13px;">
+              No threats indexed yet. Run <code>uv run python main.py once</code> to trigger a live cycle.
             </div>
             {% endif %}
           </div>
         </div>
 
-        <!-- Right: Campaigns + Telemetry -->
-        <div class="mc-col mc-col--right">
+        <!-- RIGHT: SIDEBAR PANELS -->
+        <aside class="sidebar-panel-col">
+          <!-- ACTIVE CAMPAIGNS CLUSTERS -->
           {% if campaigns %}
-          <div class="mc-panel">
-            <h3 class="mc-title">🧬 Active Campaigns</h3>
-            <div class="camp-list">
+          <div class="sidebar-widget-card">
+            <div class="widget-header-row">
+              <h3 class="widget-title-text">🧬 Active Threat Campaigns</h3>
+            </div>
+            <div class="campaigns-list-stack">
               {% for c in campaigns %}
-              <div class="camp-row">
-                <div class="camp-info">
-                  <span class="camp-fp">{{ c.campaign_fingerprint }}</span>
-                  <span class="camp-cat">{{ c.threat_category }}</span>
+              <div class="campaign-item-row">
+                <div class="campaign-row-meta">
+                  <span class="campaign-id-code">{{ c.campaign_fingerprint }}</span>
+                  <span class="campaign-category-text">{{ c.threat_category }}</span>
                 </div>
-                <div class="camp-right">
-                  <span class="vel-badge vel--{{ c.velocity | lower }}">{{ c.velocity }}</span>
-                  <span class="camp-count">{{ c.report_count }}×</span>
+                <div class="campaign-velocity-cluster">
+                  <span class="velocity-badge-pill vel--{{ c.velocity | lower }}">{{ c.velocity }}</span>
+                  <span class="campaign-report-count">{{ c.report_count }}×</span>
                 </div>
               </div>
               {% endfor %}
@@ -356,138 +1655,194 @@
           </div>
           {% endif %}
 
-          <div class="mc-panel">
-            <div class="mc-panel-head">
-              <h3 class="mc-title">⚙️ Scraper Health</h3>
-              <button class="btn-heal" id="simulate-heal-btn2" onclick="simulateSelfHeal()">🔧 Demo Heal</button>
+          <!-- SCRAPER TELEMETRY & AUTO-HEAL -->
+          <div class="sidebar-widget-card">
+            <div class="widget-header-row">
+              <h3 class="widget-title-text">⚙️ Scraper Health & Telemetry</h3>
+              <button class="btn btn-secondary btn-xs" id="btn-heal-sidebar" onclick="simulateSelfHeal()">
+                ⚡ Demo Heal
+              </button>
             </div>
-            <div class="telem-list">
+            <div class="telemetry-stream-stack">
               {% if telemetry %}
                 {% for e in telemetry %}
-                <div class="telem-row telem--{{ e.status | lower }}">
-                  <div class="telem-info">
-                    <span class="telem-source">{{ e.source_name | replace('_', ' ') | title }}</span>
-                    {% if e.error_message %}<span class="telem-err">{{ e.error_message }}</span>{% endif %}
-                  </div>
-                  <div class="telem-right">
-                    <span class="telem-status">
-                      {% if e.status == 'HEALTHY' %}✅{% elif e.status == 'HEALED' %}⚡{% elif e.status == 'DEGRADED' %}⚠️{% else %}❌{% endif %}
-                      {{ e.status }}
+                <div class="telemetry-log-item telem--{{ e.status | lower }}">
+                  <div class="telem-top-line">
+                    <span class="telem-source-title">{{ e.source_name | replace('_', ' ') | title }}</span>
+                    <span class="telem-badge-pill pill--{{ e.status | lower }}">
+                      {% if e.status == 'HEALTHY' %}✓ HEALTHY{% elif e.status == 'HEALED' %}⚡ HEALED{% else %}⚠️ {{ e.status }}{% endif %}
                     </span>
-                    <span class="telem-nums">F:{{ e.items_found }} N:{{ e.items_new }}</span>
-                    {% if e.heal_triggered %}<span class="heal-chip">🔧 Healed</span>{% endif %}
                   </div>
-                  <span class="telem-ts">{{ e.created_at[:16] if e.created_at else '' }}</span>
+                  {% if e.error_message %}
+                  <p class="telem-error-line">{{ e.error_message }}</p>
+                  {% endif %}
+                  <div class="telem-bottom-line">
+                    <span>Found: <strong>{{ e.items_found }}</strong> · New: <strong>{{ e.items_new }}</strong></span>
+                    {% if e.heal_triggered %}
+                    <span class="healed-badge-chip">🔧 Healed</span>
+                    {% endif %}
+                    <span class="telem-time-stamp">{{ e.created_at[:16] if e.created_at else '' }}</span>
+                  </div>
                 </div>
                 {% endfor %}
               {% else %}
-              <div class="empty-state">
-                <span class="empty-icon">📡</span>
-                <p>No scrape cycles yet.</p>
-              </div>
+              <div style="padding: 20px; text-align: center; color: var(--text-dim); font-size: 12px;">No telemetry cycles yet.</div>
               {% endif %}
             </div>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-inner">
-      <span class="footer-brand">⬡ ThreatRadar</span>
-      <span class="footer-text">Built for Into the Scrape-Verse · Bright Data × WeMakeDevs · Aug 2026</span>
-      <span class="footer-text">Powered by Bright Data Scraper Studio + Gemini 3.7 Flash</span>
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- FOOTER                                                 -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <footer class="footer-wrap">
+    <div class="container footer-content-flex">
+      <div>
+        <span class="footer-brand-title">⬡ ThreatRadar</span>
+        <span class="footer-text-dim"> — Autonomous Developer Threat Intelligence</span>
+      </div>
+      <div class="footer-text-dim">
+        Built for Into the Scrape-Verse · Bright Data × WeMakeDevs
+      </div>
     </div>
   </footer>
 
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- SCRIPT CONTROLLER                                      -->
+  <!-- ══════════════════════════════════════════════════════ -->
   <script>
   const PRESETS = {
-    repo: `Hi! I'm a recruiter at FinTechCorp. We loved your GitHub profile — we have a remote frontend intern role ($400/wk). Please clone our demo app and run npm install && npm start to complete the benchmark test: https://github.com/client-demo-test/webapp — let me know your results!`,
-    telegram: `Join our team! Earn ₹2000/day by completing simple tasks — rate Google Maps locations & subscribe to YouTube channels. Pay a ₹500 security deposit to activate your account. Message @taskmaster_earn on Telegram with your UPI ID to get started!`,
-    courier: `DTDC Express: Your package #DTC4892013 could not be delivered due to an incomplete address. Pay ₹25 redelivery fee to reschedule: https://dtdc-redeliver.xyz/pay — Offer expires in 24 hours.`,
-    npm: `Hey found this Discord bot template that's super easy to setup. Just npm install discord-token-grabber-v14 — it has everything pre-configured for selfbot features. Tons of people in our server use it!`,
+    repo: `Hi! I'm a recruiter at FinTechCorp. We loved your GitHub profile — we have an open remote frontend intern role ($400/wk). Please clone our demo app and run npm install && npm start to complete our brief benchmark task: https://github.com/client-demo-test/webapp — let me know your results!`,
+    telegram: `Join our team! Earn ₹2,000/day by completing simple digital tasks — rate Google Maps locations & subscribe to verified YouTube channels. Pay a ₹500 security deposit to activate your account. Message @taskmaster_earn on Telegram with your UPI ID to get started!`,
+    courier: `DTDC Express: Your hackathon package #DTC4892013 could not be delivered due to an incomplete address. Pay ₹25 redelivery fee to reschedule immediately: https://dtdc-redeliver.xyz/pay — Offer expires in 24 hours.`,
+    npm: `Hey I found this Discord bot template that is super easy to setup. Just npm install discord-token-grabber-v14 — it has everything pre-configured for selfbot features. Tons of people in our server use it!`,
   };
 
   function loadPreset(key) {
-    document.getElementById('scanner-input').value = PRESETS[key];
+    const input = document.getElementById('scanner-input');
+    input.value = PRESETS[key];
     document.getElementById('scan-result').hidden = true;
-    document.getElementById('scanner-input').focus();
+    input.focus();
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   async function runScan() {
-    const text = document.getElementById('scanner-input').value.trim();
-    if (!text) { document.getElementById('scanner-input').focus(); return; }
+    const input = document.getElementById('scanner-input');
+    const text = input.value.trim();
+    if (!text) { input.focus(); return; }
+
     const btn = document.getElementById('scan-btn');
     const lbl = document.getElementById('scan-btn-label');
     const out = document.getElementById('scan-result');
-    btn.disabled = true; lbl.textContent = '🔍 Scanning...';
-    out.hidden = true; out.innerHTML = '';
+
+    btn.disabled = true;
+    lbl.textContent = '⚡ Analyzing Threat Vectors...';
+    out.hidden = true;
+    out.innerHTML = '';
+
     try {
-      const res = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text}) });
-      renderResult(await res.json(), out);
-    } catch(e) {
-      out.innerHTML = `<div class="sr-error">⚠️ Scan failed: ${e.message}</div>`;
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      const data = await res.json();
+      renderScanResult(data, out);
+    } catch(err) {
+      out.innerHTML = `<div style="color:var(--critical);padding:12px;font-size:13px;">⚠️ Scan error: ${err.message}</div>`;
       out.hidden = false;
-    } finally { btn.disabled = false; lbl.textContent = '🛡️ Scan Now'; }
+    } finally {
+      btn.disabled = false;
+      lbl.textContent = '⚡ Scan & Intercept';
+    }
   }
 
-  function renderResult(d, out) {
-    const vcfg = {
-      CRITICAL_SCAM:{cls:'sr--critical',emoji:'🚨',label:'CRITICAL SCAM'},
-      SUSPICIOUS:{cls:'sr--suspicious',emoji:'⚠️',label:'SUSPICIOUS'},
-      LIKELY_SAFE:{cls:'sr--safe',emoji:'✅',label:'LIKELY SAFE'},
+  function renderScanResult(data, out) {
+    const config = {
+      CRITICAL_SCAM: { cls: 'verdict--critical', icon: '🚨', label: 'CRITICAL SCAM DETECTED' },
+      SUSPICIOUS:    { cls: 'verdict--suspicious', icon: '⚠️', label: 'SUSPICIOUS LURE' },
+      LIKELY_SAFE:   { cls: 'verdict--safe', icon: '✅', label: 'LIKELY BENIGN' },
     };
-    const v = vcfg[d.verdict] || {cls:'sr--unknown',emoji:'❓',label:d.verdict||'UNKNOWN'};
-    const flags = (d.red_flags_detected||[]).map(f=>`<li>${f}</li>`).join('');
-    const steps = (d.immediate_safety_steps||[]).map((s,i)=>`<li><b>${i+1}.</b> ${s}</li>`).join('');
-    const camp = d.matched_campaign_fingerprint ? `<div class="sr-camp">🧬 Matched: <code>${d.matched_campaign_fingerprint}</code></div>` : '';
-    out.innerHTML = `<div class="sr-card ${v.cls}">
-      <div class="sr-header"><span class="sr-verdict">${v.emoji} ${v.label}</span><span class="sr-cat">${d.threat_category||''}</span><span class="sr-conf">Confidence: ${Math.round((d.confidence_score||0)*100)}%</span></div>
-      <p class="sr-trap"><b>🪤 The Hidden Trap:</b> ${d.plain_english_trap||'—'}</p>${camp}
-      ${flags?`<div class="sr-section"><span class="sr-slabel">🚩 Red Flags</span><ul class="sr-list">${flags}</ul></div>`:''}
-      ${steps?`<div class="sr-section"><span class="sr-slabel">🛡️ Do This Right Now</span><ol class="sr-list">${steps}</ol></div>`:''}
-    </div>`;
+    const v = config[data.verdict] || { cls: 'verdict--safe', icon: '🔍', label: data.verdict || 'EVALUATION' };
+
+    const flags = (data.red_flags_detected || []).map(f => `<li>${f}</li>`).join('');
+    const steps = (data.immediate_safety_steps || []).map((s, i) => `<li><strong>${i+1}.</strong> ${s}</li>`).join('');
+    const matchedCamp = data.matched_campaign_fingerprint
+      ? `<div class="verdict-camp-match">🧬 Matched Active Campaign: <code>${data.matched_campaign_fingerprint}</code></div>`
+      : '';
+
+    out.innerHTML = `
+      <div class="scan-verdict-card ${v.cls}">
+        <div class="verdict-top-row">
+          <span class="verdict-badge">${v.icon} ${v.label}</span>
+          <span class="verdict-cat">${data.threat_category || 'General'}</span>
+          <span class="verdict-conf">Confidence: ${Math.round((data.confidence_score || 0) * 100)}%</span>
+        </div>
+        <p class="verdict-trap-text"><strong>🪤 The Hidden Trap:</strong> ${data.plain_english_trap || '—'}</p>
+        ${matchedCamp}
+        ${flags ? `<div class="verdict-section"><span class="verdict-section-title">🚩 Red Flags Detected</span><ul class="verdict-bullet-list">${flags}</ul></div>` : ''}
+        ${steps ? `<div class="verdict-section"><span class="verdict-section-title">🛡️ Recommended Safety Actions</span><ol class="verdict-bullet-list">${steps}</ol></div>` : ''}
+      </div>`;
     out.hidden = false;
-    out.scrollIntoView({behavior:'smooth',block:'nearest'});
+    out.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   document.getElementById('scanner-input').addEventListener('keydown', e => {
-    if ((e.ctrlKey||e.metaKey) && e.key==='Enter') runScan();
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runScan();
   });
 
-  document.querySelectorAll('.filt').forEach(btn => {
+  document.querySelectorAll('.filter-toggle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.filt').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.filter-toggle-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const f = btn.dataset.f;
-      document.querySelectorAll('.tcard').forEach(c => { c.style.display=(f==='all'||c.dataset.risk===f)?'':'none'; });
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.threat-stream-card').forEach(card => {
+        card.style.display = (filter === 'all' || card.dataset.risk === filter) ? '' : 'none';
+      });
     });
   });
 
   function toggleCard(id) {
-    const d=document.getElementById('td-'+id), b=document.getElementById('eb-'+id), h=d.hidden;
-    d.hidden=!h;
-    b.innerHTML=(h?'Hide Details <span class="chev">▲</span>':'Show Details <span class="chev">▼</span>');
+    const details = document.getElementById('td-' + id);
+    const btn = document.getElementById('eb-' + id);
+    const isHidden = details.hidden;
+    details.hidden = !isHidden;
+    btn.innerHTML = (isHidden ? 'Collapse Forensic Details ▲' : 'Inspect Forensic Details ▼');
   }
 
   async function simulateSelfHeal() {
-    const btns=document.querySelectorAll('#simulate-heal-btn,#simulate-heal-btn2');
-    btns.forEach(b=>{b.disabled=true;b.textContent='⚡ Healing...';});
+    const btns = document.querySelectorAll('#btn-heal-top, #btn-heal-sidebar');
+    btns.forEach(b => { b.disabled = true; b.textContent = '⚡ Repairing Selectors...'; });
     try {
-      const d=await(await fetch('/api/simulate-heal',{method:'POST'})).json();
-      if(d.status==='success'){btns.forEach(b=>{b.textContent='✅ Healed!';});setTimeout(()=>window.location.reload(),800);}
-    } catch(e){btns.forEach(b=>{b.disabled=false;b.textContent='🔧 Demo Auto-Heal';});}
+      const res = await fetch('/api/simulate-heal', { method: 'POST' });
+      const data = await res.json();
+      if (data.status === 'success') {
+        btns.forEach(b => { b.textContent = '✓ Scraper Healed!'; });
+        setTimeout(() => window.location.reload(), 700);
+      }
+    } catch(err) {
+      btns.forEach(b => { b.disabled = false; b.textContent = '⚡ Auto-Heal Demo'; });
+    }
   }
 
-  setInterval(async()=>{
-    try{
-      const s=await(await fetch('/api/stats')).json();
-      const u={'h-threats':s.total_threats,'h-bypass':s.token_savings_pct+'%','h-campaigns':s.active_campaigns,'h-corrected':s.self_corrected};
-      for(const[id,val]of Object.entries(u)){const el=document.getElementById(id);if(el)el.textContent=val;}
-    }catch(_){}
-  },60000);
+  setInterval(async () => {
+    try {
+      const stats = await (await fetch('/api/stats')).json();
+      const updates = {
+        'h-threats': stats.total_threats,
+        'h-bypass': stats.token_savings_pct + '%',
+        'h-campaigns': stats.active_campaigns,
+        'h-corrected': stats.self_corrected,
+      };
+      for (const [id, val] of Object.entries(updates)) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      }
+    } catch(_) {}
+  }, 60000);
   </script>
 </body>
 </html>
