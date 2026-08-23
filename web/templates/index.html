@@ -3,513 +3,491 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Threat Radar — Personalized cybersecurity threat intelligence. Real-time scam and attack vector monitoring for developers and students." />
-  <title>Threat Radar — Cybersecurity Intelligence</title>
+  <title>Threat Radar — Autonomous Developer Security Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
-  <!-- ── Header ─────────────────────────────────────── -->
-  <header class="header">
-    <div class="header-inner">
-      <div class="brand">
-        <span class="brand-icon" aria-hidden="true">🛡️</span>
-        <div class="brand-text">
-          <span class="brand-name">Threat Radar</span>
-          <span class="brand-sub">Personalized Cybersecurity Intelligence</span>
+  <!-- HEADER -->
+  <header class="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/">
+        <span class="nav-logo">⬡</span>
+        <span class="nav-name">Threat<span class="nav-name-accent">Radar</span></span>
+      </a>
+      <div class="nav-center">
+        <div class="live-pill">
+          <span class="live-dot"></span>
+          <span>Live Intelligence Active</span>
         </div>
       </div>
-      <div class="header-actions">
-        <div class="status-pill" id="pipeline-status">
-          <span class="status-dot"></span>
-          <span class="status-label">Pipeline Active</span>
-        </div>
-        <button class="heal-demo-btn" id="simulate-heal-btn" onclick="simulateSelfHeal()" aria-label="Simulate Scraper Breakdown & Heal">
-          🔧 Demo Auto-Heal
-        </button>
-        <button class="refresh-btn" id="refresh-btn" onclick="window.location.reload()" aria-label="Refresh dashboard">
-          ↻ Refresh
-        </button>
+      <div class="nav-actions">
+        <button class="btn-ghost" id="simulate-heal-btn" onclick="simulateSelfHeal()">🔧 Demo Auto-Heal</button>
+        <button class="btn-ghost" onclick="window.location.reload()">↻ Refresh</button>
+        <a class="btn-primary" href="#mission-control">Mission Control ↓</a>
       </div>
     </div>
   </header>
 
-  <!-- ── Stats Bar ───────────────────────────────────── -->
-  <section class="stats-bar" aria-label="Summary statistics">
-    <div class="stats-inner">
-      <div class="stat-card" id="stat-scraped">
-        <span class="stat-value">{{ stats.total_scraped }}</span>
-        <span class="stat-label">Items Indexed</span>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-glow hero-glow--red"></div>
+    <div class="hero-glow hero-glow--blue"></div>
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Built for Into the Scrape-Verse · Bright Data × WeMakeDevs
       </div>
-      <div class="stat-card stat-card--highlight" id="stat-threats">
-        <span class="stat-value">{{ stats.total_threats }}</span>
-        <span class="stat-label">Threats Detected</span>
-      </div>
-      <div class="stat-card stat-card--campaign" id="stat-campaigns">
-        <span class="stat-value">{{ stats.active_campaigns }}</span>
-        <span class="stat-label">Active Campaigns</span>
-      </div>
-      <div class="stat-card stat-card--alert" id="stat-alerts">
-        <span class="stat-value">{{ stats.alerts_sent }}</span>
-        <span class="stat-label">Alerts Sent</span>
-      </div>
-      <div class="stat-card stat-card--heal" id="stat-heals">
-        <span class="stat-value">{{ stats.self_heals }}</span>
-        <span class="stat-label">Self-Heals</span>
-      </div>
-    </div>
+      <h1 class="hero-headline">
+        Your autonomous shield<br />against developer scams
+      </h1>
+      <p class="hero-sub">
+        Real-time threat intelligence grounded in live scraped data — not generic AI guesses.
+        Paste a recruiter DM, GitHub repo, or npm package. Get an instant, audited verdict.
+      </p>
 
-    <!-- Efficiency Metrics Row -->
-    <div class="efficiency-bar">
-      <span class="efficiency-label">⚡ Engine Efficiency:</span>
-      <div class="efficiency-metrics">
-        <div class="eff-metric" title="Items skipped before reaching the LLM via dedup + heuristic filters">
-          <span class="eff-icon">🔒</span>
-          <span class="eff-value">{{ stats.token_savings_pct }}%</span>
-          <span class="eff-desc">LLM bypass rate</span>
-        </div>
-        <div class="eff-metric" title="Duplicate URLs filtered at zero cost before any scraping">
-          <span class="eff-icon">♻️</span>
-          <span class="eff-value">{{ stats.deduped_count }}</span>
-          <span class="eff-desc">Dupes blocked</span>
-        </div>
-        <div class="eff-metric" title="Items filtered by heuristic gate before reaching Gemini">
-          <span class="eff-icon">🎯</span>
-          <span class="eff-value">{{ stats.skipped_benign }}</span>
-          <span class="eff-desc">Noise filtered</span>
-        </div>
-        <div class="eff-metric" title="Actual Gemini API calls made">
-          <span class="eff-icon">🧠</span>
-          <span class="eff-value">{{ stats.llm_calls }}</span>
-          <span class="eff-desc">LLM calls</span>
-        </div>
-        <div class="eff-metric" title="Outputs corrected by the Self-Critic to strip hallucinations">
-          <span class="eff-icon">⚡</span>
-          <span class="eff-value">{{ stats.self_corrected }}</span>
-          <span class="eff-desc">Self-corrected</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Threat Scanner Hero ───────────────────────── -->
-  <section class="scanner-hero" aria-label="Instant Threat Scanner">
-    <div class="scanner-inner">
-      <div class="scanner-heading">
-        <span class="scanner-icon">🔍</span>
-        <div>
-          <h2 class="scanner-title">Instant Threat Check</h2>
-          <p class="scanner-sub">Paste any suspicious recruiter DM, repo link, npm package name, or SMS. Get a verdict in seconds.</p>
-        </div>
-      </div>
-
-      <div class="scanner-box">
+      <!-- Scanner -->
+      <div class="scanner-card">
+        <div class="scanner-label">🔍 Instant Threat Interceptor</div>
         <textarea
           id="scanner-input"
-          class="scanner-textarea"
-          placeholder="Paste suspicious text here — e.g. a recruiter DM, GitHub repo link, npm package name, or phishing SMS..."
+          class="scanner-input"
+          placeholder="Paste anything suspicious — a recruiter DM, GitHub repo link, npm package name, Telegram offer, or SMS..."
           rows="3"
-          aria-label="Suspicious text to scan"
         ></textarea>
-
-        <div class="scanner-actions">
-          <div class="scanner-presets" aria-label="Quick test examples">
-            <span class="presets-label">Quick tests:</span>
-            <button class="preset-btn" onclick="setPreset('fake_repo')">💼 Fake Take-Home Repo</button>
-            <button class="preset-btn" onclick="setPreset('telegram_deposit')">💳 Telegram Deposit Scam</button>
-            <button class="preset-btn" onclick="setPreset('courier_phish')">📦 Courier Phishing SMS</button>
-            <button class="preset-btn" onclick="setPreset('npm_package')">⚙️ Poisoned npm Package</button>
+        <div class="scanner-footer">
+          <div class="scanner-presets">
+            <span class="presets-tag">Quick tests:</span>
+            <button class="preset" onclick="loadPreset('repo')">💼 Fake Take-Home Repo</button>
+            <button class="preset" onclick="loadPreset('telegram')">💳 Telegram Deposit Scam</button>
+            <button class="preset" onclick="loadPreset('courier')">📦 Courier Phishing SMS</button>
+            <button class="preset" onclick="loadPreset('npm')">⚙️ Poisoned npm Package</button>
           </div>
-          <button class="scan-btn" id="scan-btn" onclick="runScan()">
-            <span id="scan-btn-text">🛡️ Scan Now</span>
+          <button class="btn-scan" id="scan-btn" onclick="runScan()">
+            <span id="scan-btn-label">🛡️ Scan Now</span>
           </button>
         </div>
       </div>
 
-      <!-- Scanner Result -->
-      <div id="scanner-result" class="scanner-result" hidden aria-live="polite"></div>
+      <!-- Scan Result -->
+      <div id="scan-result" class="scan-result" hidden></div>
+
+      <!-- Hero Stats -->
+      <div class="hero-stats">
+        <div class="hstat">
+          <span class="hstat-value" id="h-threats">{{ stats.total_threats }}</span>
+          <span class="hstat-label">Threats Detected</span>
+        </div>
+        <div class="hstat-div"></div>
+        <div class="hstat">
+          <span class="hstat-value" id="h-bypass">{{ stats.token_savings_pct }}%</span>
+          <span class="hstat-label">LLM Token Bypass</span>
+        </div>
+        <div class="hstat-div"></div>
+        <div class="hstat">
+          <span class="hstat-value" id="h-campaigns">{{ stats.active_campaigns }}</span>
+          <span class="hstat-label">Active Campaigns</span>
+        </div>
+        <div class="hstat-div"></div>
+        <div class="hstat">
+          <span class="hstat-value" id="h-corrected">{{ stats.self_corrected }}</span>
+          <span class="hstat-label">Hallucinations Caught</span>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ── Main Content ────────────────────────────────── -->
-  <main class="main-content">
-
-    <!-- Left: Threat Feed -->
-    <section class="feed-section" aria-labelledby="feed-heading">
+  <!-- ATTACK VECTORS -->
+  <section class="vectors">
+    <div class="section-inner">
       <div class="section-header">
-        <h1 id="feed-heading" class="section-title">
-          <span class="section-icon">⚡</span> Threat Intelligence Feed
-        </h1>
-        <!-- Filter Controls -->
-        <div class="filter-row" role="group" aria-label="Filter threats">
-          <button class="filter-btn active" data-filter="all" id="filter-all">All</button>
-          <button class="filter-btn filter-btn--critical" data-filter="CRITICAL" id="filter-critical">🔴 Critical</button>
-          <button class="filter-btn filter-btn--high" data-filter="HIGH" id="filter-high">🟠 High</button>
-          <button class="filter-btn filter-btn--medium" data-filter="MEDIUM" id="filter-medium">🟡 Medium</button>
-          <button class="filter-btn filter-btn--low" data-filter="LOW" id="filter-low">🟢 Low</button>
+        <p class="section-eyebrow">The Asymmetric Risk</p>
+        <h2 class="section-title">Four ways developers get hit</h2>
+        <p class="section-desc">99 days nothing. 1 day — your GitHub account, Discord tokens, or bank account is gone. Threat Radar autonomously monitors all four attack surfaces.</p>
+      </div>
+      <div class="vectors-grid">
+        <div class="vector-card vector-card--red">
+          <div class="vector-icon">💼</div>
+          <h3 class="vector-title">Weaponized Interviews</h3>
+          <p class="vector-desc">Recruiters assign a "take-home coding task." Running <code>npm install</code> executes a silent postinstall payload stealing Discord tokens, SSH keys, and browser cookies.</p>
+          <div class="vector-tag">DEV_NPM_POSTINSTALL_STEALER</div>
+        </div>
+        <div class="vector-card vector-card--amber">
+          <div class="vector-icon">⚙️</div>
+          <h3 class="vector-title">Poisoned Packages</h3>
+          <p class="vector-desc">Typosquatted npm packages and Discord bot templates with obfuscated stealers. One wrong keystroke on <code>discord-selfbot-v14</code> and your session is exfiltrated.</p>
+          <div class="vector-tag">DEV_NPM_TYPOSQUATTING</div>
+        </div>
+        <div class="vector-card vector-card--purple">
+          <div class="vector-icon">💳</div>
+          <h3 class="vector-title">Telegram Task Scams</h3>
+          <p class="vector-desc">"Earn ₹2,000/day rating Google Maps. Pay ₹500 security deposit to activate." Classic advance-fee fraud targeting students hunting for pocket money.</p>
+          <div class="vector-tag">CAREER_TELEGRAM_TASK_DEPOSIT</div>
+        </div>
+        <div class="vector-card vector-card--blue">
+          <div class="vector-icon">📦</div>
+          <h3 class="vector-title">Delivery Phishing</h3>
+          <p class="vector-desc">"Your DTDC hackathon swag is on hold — pay ₹25 redelivery fee." Targets students expecting packages. UPI QR scam disguised as a tracking link.</p>
+          <div class="vector-tag">COURIER_REDELIVERY_SMS_LURE</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="pipeline">
+    <div class="section-inner">
+      <div class="section-header">
+        <p class="section-eyebrow">The Living Organism</p>
+        <h2 class="section-title">Not a wrapper. An autonomous intelligence engine.</h2>
+        <p class="section-desc">Most tools pass everything to an LLM and blindly trust the output. Threat Radar has five organs that work together — sensing, filtering, analyzing, auditing, and reflexing.</p>
+      </div>
+      <div class="pipeline-steps">
+        <div class="pipe-step">
+          <div class="pipe-num">01</div>
+          <div class="pipe-icon">📡</div>
+          <h3 class="pipe-title">Bright Data Sensory Layer</h3>
+          <p class="pipe-desc">Scraper Studio collectors autonomously monitor GitHub Security Advisories and HackerNews threat feeds. When DOM structures change, a <strong>self-healing subprocess</strong> detects breakage and repairs selectors automatically.</p>
+          <div class="pipe-tag pipe-tag--blue">Bright Data Scraper Studio</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">02</div>
+          <div class="pipe-icon">🔒</div>
+          <h3 class="pipe-title">Metabolic Gates</h3>
+          <p class="pipe-desc"><strong>SHA-256 SQLite deduplication</strong> skips seen URLs in 0.1ms. <strong>Regex Intent-Bucket heuristics</strong> filter ~60% of benign noise. The LLM only sees high-signal items.</p>
+          <div class="pipe-tag pipe-tag--green">{{ stats.token_savings_pct }}% LLM Bypass</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">03</div>
+          <div class="pipe-icon">🧠</div>
+          <h3 class="pipe-title">Gemini Threat Evaluator</h3>
+          <p class="pipe-desc">Structured Gemini analysis extracts The Lure, The Hidden Trap, Red Flags, and Action Steps — scored 1-10 for relevance against the exact developer user profile.</p>
+          <div class="pipe-tag pipe-tag--amber">Gemini 3.7 Flash</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">04</div>
+          <div class="pipe-icon">⚡</div>
+          <h3 class="pipe-title">Self-Critic Metacognition</h3>
+          <p class="pipe-desc">The agent watches its own output. Hallucinated IOCs not present in source text are stripped. Over-reactions corrected. Each output stamped <strong>VERIFIED</strong> or <strong>SELF-CORRECTED</strong>.</p>
+          <div class="pipe-tag pipe-tag--purple">{{ stats.self_corrected }} Corrections Made</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-num">05</div>
+          <div class="pipe-icon">📣</div>
+          <h3 class="pipe-title">Velocity-Adaptive Reflex</h3>
+          <p class="pipe-desc">Threats cluster into campaigns (NEW → ACTIVE → RISING). When a campaign hits RISING velocity, the alert threshold drops — catching live outbreaks before they spread.</p>
+          <div class="pipe-tag pipe-tag--red">Discord Alerts</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSION CONTROL -->
+  <section class="mission-control" id="mission-control">
+    <div class="section-inner">
+      <div class="section-header">
+        <p class="section-eyebrow">Live Dashboard</p>
+        <h2 class="section-title">Mission Control</h2>
+        <p class="section-desc">Real data. Real threats. Real-time autonomous telemetry from the live pipeline.</p>
+      </div>
+
+      <!-- Efficiency Strip -->
+      <div class="eff-strip">
+        <div class="eff-item">
+          <span class="eff-val">{{ stats.total_scraped }}</span>
+          <span class="eff-lbl">Items Indexed</span>
+        </div>
+        <div class="eff-item eff-item--green">
+          <span class="eff-val">{{ stats.token_savings_pct }}%</span>
+          <span class="eff-lbl">LLM Bypass Rate</span>
+        </div>
+        <div class="eff-item">
+          <span class="eff-val">{{ stats.deduped_count }}</span>
+          <span class="eff-lbl">Dupes Blocked</span>
+        </div>
+        <div class="eff-item">
+          <span class="eff-val">{{ stats.skipped_benign }}</span>
+          <span class="eff-lbl">Noise Filtered</span>
+        </div>
+        <div class="eff-item eff-item--blue">
+          <span class="eff-val">{{ stats.llm_calls }}</span>
+          <span class="eff-lbl">LLM Calls Made</span>
+        </div>
+        <div class="eff-item eff-item--purple">
+          <span class="eff-val">{{ stats.self_corrected }}</span>
+          <span class="eff-lbl">Self-Corrected</span>
+        </div>
+        <div class="eff-item eff-item--amber">
+          <span class="eff-val">{{ stats.alerts_sent }}</span>
+          <span class="eff-lbl">Alerts Sent</span>
+        </div>
+        <div class="eff-item eff-item--red">
+          <span class="eff-val">{{ stats.active_campaigns }}</span>
+          <span class="eff-lbl">Active Campaigns</span>
         </div>
       </div>
 
-      <!-- Threat Cards -->
-      <div class="threat-feed" id="threat-feed">
-        {% if threats %}
-          {% for threat in threats %}
-          <article
-            class="threat-card threat-card--{{ threat.risk_level | lower }}"
-            data-risk="{{ threat.risk_level }}"
-            id="threat-{{ threat.id }}"
-            aria-label="Threat: {{ threat.threat_title }}"
-          >
-            <!-- Card Header -->
-            <div class="card-header">
-              <div class="card-meta">
-                <span class="risk-badge risk-badge--{{ threat.risk_level | lower }}">
-                  {% if threat.risk_level == 'CRITICAL' %}🔴{% elif threat.risk_level == 'HIGH' %}🟠{% elif threat.risk_level == 'MEDIUM' %}🟡{% else %}🟢{% endif %}
-                  {{ threat.risk_level }}
-                </span>
-                <span class="category-tag">{{ threat.threat_category }}</span>
-                {% if threat.audit_status == 'SELF_CORRECTED' %}
-                <span class="audit-badge audit-badge--corrected" title="Self-Critic caught and removed hallucinations/over-reactions">
-                  ⚡ Self-Corrected
-                </span>
-                {% else %}
-                <span class="audit-badge audit-badge--verified" title="Passed Grounding & Verification Audit">
-                  ✓ Verified
-                </span>
-                {% endif %}
-              </div>
-              <div class="card-score">
-                <span class="relevance-score" title="Relevance to your profile">
-                  {{ threat.relevance_score }}<span class="score-denom">/10</span>
-                </span>
-                <span class="score-label">relevance</span>
-              </div>
+      <!-- Grid -->
+      <div class="mc-grid">
+        <!-- Left: Threat Feed -->
+        <div class="mc-col">
+          <div class="mc-section-head">
+            <h3 class="mc-title">⚡ Threat Intelligence Feed</h3>
+            <div class="filter-row">
+              <button class="filt active" data-f="all">All</button>
+              <button class="filt filt--crit" data-f="CRITICAL">🔴 Critical</button>
+              <button class="filt filt--high" data-f="HIGH">🟠 High</button>
+              <button class="filt filt--med" data-f="MEDIUM">🟡 Medium</button>
+              <button class="filt filt--low" data-f="LOW">🟢 Low</button>
             </div>
-
-            <!-- Card Title -->
-            <h2 class="card-title">{{ threat.threat_title }}</h2>
-
-            <!-- Intent + Source -->
-            <div class="card-source">
-              <span class="intent-badge">{{ threat.source_intent | replace('_', ' ') }}</span>
-              {% if threat.campaign_fingerprint %}
-              <span class="campaign-tag">🧬 {{ threat.campaign_fingerprint }}</span>
-              {% endif %}
-              <a class="source-link" href="{{ threat.source_url }}" target="_blank" rel="noopener noreferrer">
-                ↗ View Source
-              </a>
+          </div>
+          <div class="threat-feed" id="threat-feed">
+            {% if threats %}
+              {% for t in threats %}
+              <article class="tcard tcard--{{ t.risk_level | lower }}" data-risk="{{ t.risk_level }}" id="tc-{{ t.id }}">
+                <div class="tcard-top">
+                  <div class="tcard-badges">
+                    <span class="rbadge rbadge--{{ t.risk_level | lower }}">
+                      {% if t.risk_level == 'CRITICAL' %}🔴{% elif t.risk_level == 'HIGH' %}🟠{% elif t.risk_level == 'MEDIUM' %}🟡{% else %}🟢{% endif %}
+                      {{ t.risk_level }}
+                    </span>
+                    {% if t.audit_status == 'SELF_CORRECTED' %}
+                    <span class="abadge abadge--corrected">⚡ Self-Corrected</span>
+                    {% else %}
+                    <span class="abadge abadge--verified">✓ Verified</span>
+                    {% endif %}
+                    <span class="catbadge">{{ t.threat_category }}</span>
+                  </div>
+                  <span class="tcard-score">{{ t.relevance_score }}<span class="score-den">/10</span></span>
+                </div>
+                <h4 class="tcard-title">{{ t.threat_title }}</h4>
+                <div class="tcard-meta">
+                  <span class="intent-chip">{{ t.source_intent | replace('_', ' ') }}</span>
+                  {% if t.campaign_fingerprint %}
+                  <span class="camp-chip">🧬 {{ t.campaign_fingerprint }}</span>
+                  {% endif %}
+                  <a class="src-link" href="{{ t.source_url }}" target="_blank" rel="noopener">↗ Source</a>
+                </div>
+                <button class="expand-btn" id="eb-{{ t.id }}" onclick="toggleCard({{ t.id }})">
+                  Show Details <span class="chev">▼</span>
+                </button>
+                <div class="tcard-details" id="td-{{ t.id }}" hidden>
+                  {% if t.the_lure %}
+                  <div class="detail-row">
+                    <span class="detail-key">🎯 The Lure</span>
+                    <p class="detail-val">{{ t.the_lure }}</p>
+                  </div>
+                  {% endif %}
+                  {% if t.the_hidden_trap %}
+                  <div class="detail-row">
+                    <span class="detail-key">🪤 The Hidden Trap</span>
+                    <p class="detail-val">{{ t.the_hidden_trap }}</p>
+                  </div>
+                  {% endif %}
+                  {% if t.red_flags %}
+                  <div class="detail-row">
+                    <span class="detail-key">🚩 Red Flags</span>
+                    <ul class="detail-list">{% for f in t.red_flags %}<li>{{ f }}</li>{% endfor %}</ul>
+                  </div>
+                  {% endif %}
+                  {% if t.action_checklist %}
+                  <div class="detail-row detail-row--action">
+                    <span class="detail-key">🛡️ Do This Right Now</span>
+                    <ol class="detail-list">{% for a in t.action_checklist %}<li>{{ a }}</li>{% endfor %}</ol>
+                  </div>
+                  {% endif %}
+                  {% if t.extracted_entities %}
+                  <div class="detail-row">
+                    <span class="detail-key">🏷️ IOC Indicators</span>
+                    <div class="ioc-chips">{% for e in t.extracted_entities %}<code class="ioc">{{ e }}</code>{% endfor %}</div>
+                  </div>
+                  {% endif %}
+                  {% if t.audit_corrections %}
+                  <div class="detail-row detail-row--audit">
+                    <span class="detail-key">🛡️ Critic Audit Log</span>
+                    <ul class="detail-list audit-log">{% for c in t.audit_corrections %}<li><code>{{ c }}</code></li>{% endfor %}</ul>
+                  </div>
+                  {% endif %}
+                  <div class="detail-footer">
+                    <span>Campaign: <strong>{{ t.campaign_fingerprint or '—' }}</strong></span>
+                    <span>Confidence: {{ "%.0f"|format(t.confidence_score * 100) }}%</span>
+                    <span>{{ t.analyzed_at[:16] if t.analyzed_at else '' }}</span>
+                  </div>
+                </div>
+              </article>
+              {% endfor %}
+            {% else %}
+            <div class="empty-state">
+              <span class="empty-icon">🔍</span>
+              <p>No threats indexed yet.</p>
+              <code>uv run python main.py once</code>
             </div>
+            {% endif %}
+          </div>
+        </div>
 
-            <!-- Expandable details (collapsed by default) -->
-            <button
-              class="expand-btn"
-              id="expand-btn-{{ threat.id }}"
-              aria-expanded="false"
-              aria-controls="details-{{ threat.id }}"
-              onclick="toggleDetails({{ threat.id }})"
-            >
-              Show Details <span class="expand-chevron">▼</span>
-            </button>
-
-            <div class="card-details" id="details-{{ threat.id }}" hidden>
-              {% if threat.the_lure %}
-              <div class="detail-block">
-                <span class="detail-label">🎯 The Lure</span>
-                <p class="detail-text">{{ threat.the_lure }}</p>
-              </div>
-              {% endif %}
-
-              {% if threat.the_hidden_trap %}
-              <div class="detail-block">
-                <span class="detail-label">⚠️ The Hidden Trap</span>
-                <p class="detail-text">{{ threat.the_hidden_trap }}</p>
-              </div>
-              {% endif %}
-
-              {% if threat.red_flags %}
-              <div class="detail-block">
-                <span class="detail-label">🚩 Red Flags</span>
-                <ul class="detail-list">
-                  {% for flag in threat.red_flags %}
-                  <li>{{ flag }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
-
-              {% if threat.action_checklist %}
-              <div class="detail-block detail-block--action">
-                <span class="detail-label">✅ What To Do</span>
-                <ol class="detail-list action-list">
-                  {% for step in threat.action_checklist %}
-                  <li>{{ step }}</li>
-                  {% endfor %}
-                </ol>
-              </div>
-              {% endif %}
-
-              {% if threat.extracted_entities %}
-              <div class="detail-block">
-                <span class="detail-label">🏷️ Extracted Indicators (IOCs)</span>
-                <div class="ioc-tags">
-                  {% for entity in threat.extracted_entities %}
-                  <span class="ioc-tag"><code>{{ entity }}</code></span>
-                  {% endfor %}
+        <!-- Right: Campaigns + Telemetry -->
+        <div class="mc-col mc-col--right">
+          {% if campaigns %}
+          <div class="mc-panel">
+            <h3 class="mc-title">🧬 Active Campaigns</h3>
+            <div class="camp-list">
+              {% for c in campaigns %}
+              <div class="camp-row">
+                <div class="camp-info">
+                  <span class="camp-fp">{{ c.campaign_fingerprint }}</span>
+                  <span class="camp-cat">{{ c.threat_category }}</span>
+                </div>
+                <div class="camp-right">
+                  <span class="vel-badge vel--{{ c.velocity | lower }}">{{ c.velocity }}</span>
+                  <span class="camp-count">{{ c.report_count }}×</span>
                 </div>
               </div>
-              {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
 
-              {% if threat.audit_corrections %}
-              <div class="detail-block detail-block--audit">
-                <span class="detail-label">🛡️ Critic Audit Trail (Self-Correction Log)</span>
-                <ul class="detail-list audit-list">
-                  {% for corr in threat.audit_corrections %}
-                  <li><code>{{ corr }}</code></li>
-                  {% endfor %}
-                </ul>
+          <div class="mc-panel">
+            <div class="mc-panel-head">
+              <h3 class="mc-title">⚙️ Scraper Health</h3>
+              <button class="btn-heal" id="simulate-heal-btn2" onclick="simulateSelfHeal()">🔧 Demo Heal</button>
+            </div>
+            <div class="telem-list">
+              {% if telemetry %}
+                {% for e in telemetry %}
+                <div class="telem-row telem--{{ e.status | lower }}">
+                  <div class="telem-info">
+                    <span class="telem-source">{{ e.source_name | replace('_', ' ') | title }}</span>
+                    {% if e.error_message %}<span class="telem-err">{{ e.error_message }}</span>{% endif %}
+                  </div>
+                  <div class="telem-right">
+                    <span class="telem-status">
+                      {% if e.status == 'HEALTHY' %}✅{% elif e.status == 'HEALED' %}⚡{% elif e.status == 'DEGRADED' %}⚠️{% else %}❌{% endif %}
+                      {{ e.status }}
+                    </span>
+                    <span class="telem-nums">F:{{ e.items_found }} N:{{ e.items_new }}</span>
+                    {% if e.heal_triggered %}<span class="heal-chip">🔧 Healed</span>{% endif %}
+                  </div>
+                  <span class="telem-ts">{{ e.created_at[:16] if e.created_at else '' }}</span>
+                </div>
+                {% endfor %}
+              {% else %}
+              <div class="empty-state">
+                <span class="empty-icon">📡</span>
+                <p>No scrape cycles yet.</p>
               </div>
               {% endif %}
-
-              <div class="card-footer">
-                <span class="confidence-text">Campaign: <strong>{{ threat.campaign_fingerprint or 'N/A' }}</strong> • Confidence: {{ "%.0f"|format(threat.confidence_score * 100) }}%</span>
-                <span class="timestamp">{{ threat.analyzed_at[:16] if threat.analyzed_at else '' }}</span>
-              </div>
             </div>
-          </article>
-          {% endfor %}
-        {% else %}
-          <div class="empty-state" id="empty-state">
-            <span class="empty-icon">🔍</span>
-            <p class="empty-title">No threats indexed yet</p>
-            <p class="empty-sub">Run <code>uv run python main.py once</code> to start the pipeline.</p>
           </div>
-        {% endif %}
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Right: Scraper Health Telemetry -->
-    <aside class="telemetry-section" aria-labelledby="telemetry-heading">
-      <div class="section-header">
-        <h2 id="telemetry-heading" class="section-title">
-          <span class="section-icon">⚙️</span> Scraper Health
-        </h2>
-      </div>
-
-      <div class="telemetry-feed" id="telemetry-feed">
-        {% if telemetry %}
-          {% for entry in telemetry %}
-          <div
-            class="telemetry-card telemetry-card--{{ entry.status | lower }}"
-            id="telemetry-{{ entry.id }}"
-          >
-            <div class="telemetry-header">
-              <span class="telemetry-source">{{ entry.source_name | replace('_', ' ') | title }}</span>
-              <span class="telemetry-status telemetry-status--{{ entry.status | lower }}">
-                {% if entry.status == 'HEALTHY' %}✅
-                {% elif entry.status == 'HEALED' %}⚡
-                {% elif entry.status == 'DEGRADED' %}⚠️
-                {% elif entry.status == 'HEALING' %}🔧
-                {% else %}❌{% endif %}
-                {{ entry.status }}
-              </span>
-            </div>
-            <div class="telemetry-stats">
-              <span>Found: <strong>{{ entry.items_found }}</strong></span>
-              <span>New: <strong>{{ entry.items_new }}</strong></span>
-              {% if entry.heal_triggered %}
-              <span class="heal-flag">🔧 Healed</span>
-              {% endif %}
-            </div>
-            {% if entry.error_message %}
-            <p class="telemetry-error">{{ entry.error_message }}</p>
-            {% endif %}
-            <span class="telemetry-time">{{ entry.created_at[:16] if entry.created_at else '' }}</span>
-          </div>
-          {% endfor %}
-        {% else %}
-          <div class="empty-state">
-            <span class="empty-icon">📡</span>
-            <p class="empty-title">No scrape cycles run yet</p>
-          </div>
-        {% endif %}
-      </div>
-    </aside>
-
-  </main>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span class="footer-brand">⬡ ThreatRadar</span>
+      <span class="footer-text">Built for Into the Scrape-Verse · Bright Data × WeMakeDevs · Aug 2026</span>
+      <span class="footer-text">Powered by Bright Data Scraper Studio + Gemini 3.7 Flash</span>
+    </div>
+  </footer>
 
   <script>
-    // ── Scanner Preset Examples ────────────────────────────────
-    const PRESETS = {
-      fake_repo: `Hi! I'm a recruiter at FinTech Startup. We loved your GitHub. We have a remote frontend role ($400/wk). Please clone our demo app and run it: https://github.com/client-demo-test/webapp — just npm install && npm start to run the benchmark. Let me know your results!`,
-      telegram_deposit: `Join our team! Earn ₹2000/day by completing simple tasks: rate Google Maps locations & subscribe to YouTube channels. You need to pay a ₹500 security deposit to activate your account. Telegram: @taskmaster_earn — Message us your UPI ID to get started!`,
-      courier_phish: `DTDC Express: Your package #DTC4892013 could not be delivered due to incomplete address. Pay ₹25 redelivery fee to reschedule: https://dtdc-redeliver.xyz/pay — Offer expires in 24 hours.`,
-      npm_package: `Hey I found this Discord bot template that's super easy to setup. Just install discord-token-grabber-v14 via npm. It has everything pre-configured for selfbot features. Tons of people in our server are using it.`,
+  const PRESETS = {
+    repo: `Hi! I'm a recruiter at FinTechCorp. We loved your GitHub profile — we have a remote frontend intern role ($400/wk). Please clone our demo app and run npm install && npm start to complete the benchmark test: https://github.com/client-demo-test/webapp — let me know your results!`,
+    telegram: `Join our team! Earn ₹2000/day by completing simple tasks — rate Google Maps locations & subscribe to YouTube channels. Pay a ₹500 security deposit to activate your account. Message @taskmaster_earn on Telegram with your UPI ID to get started!`,
+    courier: `DTDC Express: Your package #DTC4892013 could not be delivered due to an incomplete address. Pay ₹25 redelivery fee to reschedule: https://dtdc-redeliver.xyz/pay — Offer expires in 24 hours.`,
+    npm: `Hey found this Discord bot template that's super easy to setup. Just npm install discord-token-grabber-v14 — it has everything pre-configured for selfbot features. Tons of people in our server use it!`,
+  };
+
+  function loadPreset(key) {
+    document.getElementById('scanner-input').value = PRESETS[key];
+    document.getElementById('scan-result').hidden = true;
+    document.getElementById('scanner-input').focus();
+  }
+
+  async function runScan() {
+    const text = document.getElementById('scanner-input').value.trim();
+    if (!text) { document.getElementById('scanner-input').focus(); return; }
+    const btn = document.getElementById('scan-btn');
+    const lbl = document.getElementById('scan-btn-label');
+    const out = document.getElementById('scan-result');
+    btn.disabled = true; lbl.textContent = '🔍 Scanning...';
+    out.hidden = true; out.innerHTML = '';
+    try {
+      const res = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text}) });
+      renderResult(await res.json(), out);
+    } catch(e) {
+      out.innerHTML = `<div class="sr-error">⚠️ Scan failed: ${e.message}</div>`;
+      out.hidden = false;
+    } finally { btn.disabled = false; lbl.textContent = '🛡️ Scan Now'; }
+  }
+
+  function renderResult(d, out) {
+    const vcfg = {
+      CRITICAL_SCAM:{cls:'sr--critical',emoji:'🚨',label:'CRITICAL SCAM'},
+      SUSPICIOUS:{cls:'sr--suspicious',emoji:'⚠️',label:'SUSPICIOUS'},
+      LIKELY_SAFE:{cls:'sr--safe',emoji:'✅',label:'LIKELY SAFE'},
     };
+    const v = vcfg[d.verdict] || {cls:'sr--unknown',emoji:'❓',label:d.verdict||'UNKNOWN'};
+    const flags = (d.red_flags_detected||[]).map(f=>`<li>${f}</li>`).join('');
+    const steps = (d.immediate_safety_steps||[]).map((s,i)=>`<li><b>${i+1}.</b> ${s}</li>`).join('');
+    const camp = d.matched_campaign_fingerprint ? `<div class="sr-camp">🧬 Matched: <code>${d.matched_campaign_fingerprint}</code></div>` : '';
+    out.innerHTML = `<div class="sr-card ${v.cls}">
+      <div class="sr-header"><span class="sr-verdict">${v.emoji} ${v.label}</span><span class="sr-cat">${d.threat_category||''}</span><span class="sr-conf">Confidence: ${Math.round((d.confidence_score||0)*100)}%</span></div>
+      <p class="sr-trap"><b>🪤 The Hidden Trap:</b> ${d.plain_english_trap||'—'}</p>${camp}
+      ${flags?`<div class="sr-section"><span class="sr-slabel">🚩 Red Flags</span><ul class="sr-list">${flags}</ul></div>`:''}
+      ${steps?`<div class="sr-section"><span class="sr-slabel">🛡️ Do This Right Now</span><ol class="sr-list">${steps}</ol></div>`:''}
+    </div>`;
+    out.hidden = false;
+    out.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
 
-    function setPreset(key) {
-      document.getElementById('scanner-input').value = PRESETS[key];
-      document.getElementById('scanner-input').focus();
-      // Clear old result
-      const result = document.getElementById('scanner-result');
-      result.hidden = true;
-      result.innerHTML = '';
-    }
+  document.getElementById('scanner-input').addEventListener('keydown', e => {
+    if ((e.ctrlKey||e.metaKey) && e.key==='Enter') runScan();
+  });
 
-    // ── Run Scan ───────────────────────────────────────────────
-    async function runScan() {
-      const input = document.getElementById('scanner-input').value.trim();
-      if (!input) {
-        document.getElementById('scanner-input').focus();
-        return;
-      }
-
-      const btn = document.getElementById('scan-btn');
-      const btnText = document.getElementById('scan-btn-text');
-      const resultDiv = document.getElementById('scanner-result');
-
-      btn.disabled = true;
-      btnText.textContent = '🔍 Scanning...';
-      resultDiv.hidden = true;
-      resultDiv.innerHTML = '';
-
-      try {
-        const res = await fetch('/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: input }),
-        });
-        const data = await res.json();
-        renderScanResult(data);
-      } catch (e) {
-        resultDiv.innerHTML = `<div class="scan-error">⚠️ Scan failed: ${e.message}</div>`;
-        resultDiv.hidden = false;
-      } finally {
-        btn.disabled = false;
-        btnText.textContent = '🛡️ Scan Now';
-      }
-    }
-
-    function renderScanResult(data) {
-      const resultDiv = document.getElementById('scanner-result');
-      const verdict = data.verdict || 'UNKNOWN';
-      const verdictConfig = {
-        CRITICAL_SCAM: { emoji: '🚨', label: 'CRITICAL SCAM', cls: 'verdict--critical' },
-        SUSPICIOUS:    { emoji: '⚠️', label: 'SUSPICIOUS',    cls: 'verdict--suspicious' },
-        LIKELY_SAFE:   { emoji: '✅', label: 'LIKELY SAFE',   cls: 'verdict--safe' },
-      };
-      const vc = verdictConfig[verdict] || { emoji: '❓', label: verdict, cls: 'verdict--unknown' };
-
-      const redFlags = (data.red_flags_detected || []).map(f => `<li>${f}</li>`).join('');
-      const steps = (data.immediate_safety_steps || []).map((s, i) => `<li><strong>${i+1}.</strong> ${s}</li>`).join('');
-      const campaign = data.matched_campaign_fingerprint
-        ? `<div class="scan-campaign">🧬 Matched Campaign: <code>${data.matched_campaign_fingerprint}</code></div>`
-        : '';
-
-      resultDiv.innerHTML = `
-        <div class="scan-result-card ${vc.cls}">
-          <div class="scan-verdict-row">
-            <span class="scan-verdict-badge">${vc.emoji} ${vc.label}</span>
-            <span class="scan-category">${data.threat_category || ''}</span>
-            <span class="scan-confidence">Confidence: ${Math.round((data.confidence_score || 0) * 100)}%</span>
-          </div>
-          <p class="scan-trap"><strong>🪤 The Hidden Trap:</strong> ${data.plain_english_trap || '—'}</p>
-          ${campaign}
-          ${redFlags ? `
-          <div class="scan-section">
-            <span class="scan-section-label">🚩 Red Flags Detected</span>
-            <ul class="scan-list">${redFlags}</ul>
-          </div>` : ''}
-          ${steps ? `
-          <div class="scan-section">
-            <span class="scan-section-label">🛡️ Do This Right Now</span>
-            <ol class="scan-list">${steps}</ol>
-          </div>` : ''}
-        </div>
-      `;
-      resultDiv.hidden = false;
-      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // Allow Ctrl+Enter / Cmd+Enter to trigger scan
-    document.getElementById('scanner-input').addEventListener('keydown', function(e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runScan();
+  document.querySelectorAll('.filt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filt').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.f;
+      document.querySelectorAll('.tcard').forEach(c => { c.style.display=(f==='all'||c.dataset.risk===f)?'':'none'; });
     });
+  });
 
-    // ── Filter Logic ──────────────────────────────────────────
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const threatCards = document.querySelectorAll('.threat-card');
+  function toggleCard(id) {
+    const d=document.getElementById('td-'+id), b=document.getElementById('eb-'+id), h=d.hidden;
+    d.hidden=!h;
+    b.innerHTML=(h?'Hide Details <span class="chev">▲</span>':'Show Details <span class="chev">▼</span>');
+  }
 
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filter = btn.dataset.filter;
-        threatCards.forEach(card => {
-          if (filter === 'all' || card.dataset.risk === filter) {
-            card.style.display = '';
-            card.style.animation = 'fadeIn 0.2s ease';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      });
-    });
+  async function simulateSelfHeal() {
+    const btns=document.querySelectorAll('#simulate-heal-btn,#simulate-heal-btn2');
+    btns.forEach(b=>{b.disabled=true;b.textContent='⚡ Healing...';});
+    try {
+      const d=await(await fetch('/api/simulate-heal',{method:'POST'})).json();
+      if(d.status==='success'){btns.forEach(b=>{b.textContent='✅ Healed!';});setTimeout(()=>window.location.reload(),800);}
+    } catch(e){btns.forEach(b=>{b.disabled=false;b.textContent='🔧 Demo Auto-Heal';});}
+  }
 
-    // ── Expand/Collapse Threat Details ────────────────────────
-    function toggleDetails(id) {
-      const details = document.getElementById('details-' + id);
-      const btn = document.getElementById('expand-btn-' + id);
-      const isHidden = details.hidden;
-      details.hidden = !isHidden;
-      btn.setAttribute('aria-expanded', String(isHidden));
-      btn.innerHTML = (isHidden ? 'Hide Details' : 'Show Details') + ' <span class="expand-chevron">' + (isHidden ? '▲' : '▼') + '</span>';
-    }
-
-    // ── Simulate Self-Healing Lifecycle ───────────────────────
-    async function simulateSelfHeal() {
-      const btn = document.getElementById('simulate-heal-btn');
-      const origText = btn.innerHTML;
-      btn.innerHTML = '⚡ Healing...';
-      btn.disabled = true;
-      try {
-        const res = await fetch('/api/simulate-heal', { method: 'POST' });
-        const data = await res.json();
-        if (data.status === 'success') {
-          btn.innerHTML = '✅ Healed!';
-          setTimeout(() => { window.location.reload(); }, 600);
-        } else {
-          btn.innerHTML = origText;
-          btn.disabled = false;
-        }
-      } catch (e) {
-        console.error(e);
-        btn.innerHTML = origText;
-        btn.disabled = false;
-      }
-    }
-
-    // ── Auto-refresh efficiency bar every 60s ─────────────────
-    setInterval(async () => {
-      try {
-        const res = await fetch('/api/stats');
-        const s = await res.json();
-        const updates = {
-          'stat-scraped': s.total_scraped,
-          'stat-threats': s.total_threats,
-          'stat-campaigns': s.active_campaigns,
-          'stat-alerts': s.alerts_sent,
-          'stat-heals': s.self_heals,
-        };
-        for (const [id, val] of Object.entries(updates)) {
-          const el = document.querySelector(`#${id} .stat-value`);
-          if (el) el.textContent = val;
-        }
-      } catch (_) {}
-    }, 60000);
+  setInterval(async()=>{
+    try{
+      const s=await(await fetch('/api/stats')).json();
+      const u={'h-threats':s.total_threats,'h-bypass':s.token_savings_pct+'%','h-campaigns':s.active_campaigns,'h-corrected':s.self_corrected};
+      for(const[id,val]of Object.entries(u)){const el=document.getElementById(id);if(el)el.textContent=val;}
+    }catch(_){}
+  },60000);
   </script>
-
 </body>
 </html>
